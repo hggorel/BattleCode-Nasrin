@@ -1,1 +1,3 @@
 # BattleCodeAI
+#Taylor Clark
+
