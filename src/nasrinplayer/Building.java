@@ -4,6 +4,7 @@ import battlecode.common.*;
 public class Building extends Robot{
 
     public Building(RobotController robotController) {
+
         super(robotController);
     }
 

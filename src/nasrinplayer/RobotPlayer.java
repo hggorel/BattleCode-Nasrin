@@ -79,6 +79,6 @@ public strictfp class RobotPlayer {
         }
 
 
-        //If a robot finds a soup,
+
     }
 }

@@ -3,7 +3,11 @@ import battlecode.common.*;
 
 
 public class Communications {
+
+
     RobotController rc;
+
+    boolean HQloc=false;
 
     static final int key=1;
     //Can be changed, will be the first int array submitted to the blockchain, identifying that the message is coming from the nasrin team
@@ -33,6 +37,7 @@ public class Communications {
 
      */
     public void sendHQLoc(MapLocation current)throws GameActionException{
+
         int[] message = new int[7];
         //We are allowed 7 integers in the blockchain
         message[0] = key;
@@ -51,6 +56,9 @@ public class Communications {
     -This was the way that the lecture on the MIT battlecode used to communicate the locations needed
      */
     public MapLocation getHqLoc() throws GameActionException {
+
+
+
         for (int i = 1; i < rc.getRoundNum(); i++){
             //We go up to the round number because "If there are 400 round there will be 399 items in the block chain"
             for(Transaction ts : rc.getBlock(i)) {
@@ -59,6 +67,7 @@ public class Communications {
                 if(hqfinder[0] == key && hqfinder[1] == 0){
                     //if we find the key for the HQ
                     System.out.println("found the HQ!");
+                    HQloc=true;
                     return new MapLocation(hqfinder[2], hqfinder[3]);
                 }
             }

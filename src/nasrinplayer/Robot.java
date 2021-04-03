@@ -1,6 +1,6 @@
 package nasrinplayer;
 import battlecode.common.*;
-import lectureplayer.Communications;
+
 
 public class Robot {
     RobotController rc;
@@ -10,7 +10,10 @@ public class Robot {
     int turnCount=0;
 
     public Robot(RobotController robotController){
+
         this.rc = robotController;
+
+        comms = new Communications(rc);
     }
 
     public void takeTurn() throws GameActionException{
