@@ -7,6 +7,7 @@ import battlecode.common.*;
 public class HQ extends Building{
 
     public HQ(RobotController robotController) {
+
         super(robotController);
     }
 
