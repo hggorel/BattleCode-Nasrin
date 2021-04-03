@@ -1,8 +1,11 @@
 package nasrinplayer;
 import battlecode.common.*;
+import lectureplayer.Communications;
 
 public class Robot {
     RobotController rc;
+    Communications comms;
+
 
     int turnCount=0;
 

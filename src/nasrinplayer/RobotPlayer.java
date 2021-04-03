@@ -77,5 +77,8 @@ public strictfp class RobotPlayer {
                 e.printStackTrace();
             }
         }
+
+
+        //If a robot finds a soup,
     }
 }
