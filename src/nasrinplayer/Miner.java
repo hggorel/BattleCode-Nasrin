@@ -1,20 +1,59 @@
 package nasrinplayer;
 import battlecode.common.*;
 
-public class Miner extends Unit{
+import java.util.Map;
+
+
+public class Miner extends Unit {
+
+    boolean hasConributied=false;
+    boolean currentlyWalking=true;
+    boolean soupMining=false;
+    MapLocation[] soups;
 
     public Miner(RobotController robotController) {
+
         super(robotController);
     }
 
-    public void takeTurn() throws GameActionException{
+    public void takeTurn() throws GameActionException {
         super.takeTurn();
 
         //look for soup and try to mine :)
+        MapLocation a = new MapLocation(36,36);
+        //Example in which the directAppoach works;
+        pathing.directApproach(rc.getLocation(),a );
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         //if full, deposit soup at refinery
         //if not full, see if we know there's soup places and go there
         //if not full, and don't have any saved locations .. move randomly
-    }
+
     /**
      * Attempts to mine soup in a given direction.
      *
@@ -27,6 +66,12 @@ public class Miner extends Unit{
             rc.mineSoup(dir);
             return true;
         } else return false;
+    }
+    /*
+    Wont throw GameActionException, because no method is directly being called
+     */
+    static Direction randomDirection(){
+        return HQ.directions[(int) (Math.random() * HQ.directions.length)];
     }
 
     /**
@@ -42,4 +87,8 @@ public class Miner extends Unit{
             return true;
         } else return false;
     }
+
+
+
+
 }

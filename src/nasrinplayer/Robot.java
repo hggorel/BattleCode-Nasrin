@@ -5,6 +5,7 @@ import battlecode.common.*;
 public class Robot {
     RobotController rc;
     Communications comms;
+    PathFinder pathing;
 
 
     int turnCount=0;
@@ -14,6 +15,8 @@ public class Robot {
         this.rc = robotController;
 
         comms = new Communications(rc);
+
+        pathing = new PathFinder(rc);
     }
 
     public void takeTurn() throws GameActionException{

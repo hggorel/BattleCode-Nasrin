@@ -77,6 +77,7 @@ public class Communications {
     /*
     This method is meant to send the Soup Location to the blockchain. Note the higher transcation fee,
     It can be changed but cost/benefit is important and it should be prioritized
+    We should also be taking the most recent soup locations
      */
     public void sendSoupLoc(MapLocation current)throws GameActionException{
         int[]message= new int[7];
