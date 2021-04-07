@@ -1,4 +1,5 @@
 package nasrinplayer;
+
 import battlecode.common.*;
 
 public strictfp class RobotPlayer {
@@ -77,7 +78,6 @@ public strictfp class RobotPlayer {
                 e.printStackTrace();
             }
         }
-
 
 
     }

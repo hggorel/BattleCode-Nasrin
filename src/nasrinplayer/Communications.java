@@ -1,4 +1,5 @@
 package nasrinplayer;
+
 import battlecode.common.*;
 
 
@@ -7,9 +8,9 @@ public class Communications {
 
     RobotController rc;
 
-    boolean HQloc=false;
+    boolean HQloc = false;
 
-    static final int key=1;
+    static final int key = 1;
     //Can be changed, will be the first int array submitted to the blockchain, identifying that the message is coming from the nasrin team
 
     /*
@@ -36,7 +37,7 @@ public class Communications {
     ..
 
      */
-    public void sendHQLoc(MapLocation current)throws GameActionException{
+    public void sendHQLoc(MapLocation current) throws GameActionException {
 
         int[] message = new int[7];
         //We are allowed 7 integers in the blockchain
@@ -58,48 +59,49 @@ public class Communications {
     public MapLocation getHqLoc() throws GameActionException {
 
 
-
-        for (int i = 1; i < rc.getRoundNum(); i++){
+        for (int i = 1; i < rc.getRoundNum(); i++) {
             //We go up to the round number because "If there are 400 round there will be 399 items in the block chain"
-            for(Transaction ts : rc.getBlock(i)) {
+            for (Transaction ts : rc.getBlock(i)) {
                 //in each transacation
                 int[] hqfinder = ts.getMessage();
-                if(hqfinder[0] == key && hqfinder[1] == 0){
+                if (hqfinder[0] == key && hqfinder[1] == 0) {
                     //if we find the key for the HQ
                     System.out.println("found the HQ!");
-                    HQloc=true;
+                    HQloc = true;
                     return new MapLocation(hqfinder[2], hqfinder[3]);
                 }
             }
         }
         return null;
     }
+
     /*
     This method is meant to send the Soup Location to the blockchain. Note the higher transcation fee,
     It can be changed but cost/benefit is important and it should be prioritized
     We should also be taking the most recent soup locations
      */
-    public void sendSoupLoc(MapLocation current)throws GameActionException{
-        int[]message= new int[7];
-        message[0]=key;
-        message[1]=5;
-        message[2]=current.x;
-        message[3]=current.y;
+    public void sendSoupLoc(MapLocation current) throws GameActionException {
+        int[] message = new int[7];
+        message[0] = key;
+        message[1] = 5;
+        message[2] = current.x;
+        message[3] = current.y;
         if (rc.canSubmitTransaction(message, 15)) {
             rc.submitTransaction(message, 15);
         }
     }
+
     /*
     This method is used for getting the Soup Location
     Please reference the method above or lectures from on the 2020 BattleCode playlist if you
     need to understand what is going on
      */
-    public MapLocation getSoupLoc() throws GameActionException{
-        for (int i = 1; i < rc.getRoundNum(); i++){
-            for(Transaction ts : rc.getBlock(i)) {
+    public MapLocation getSoupLoc() throws GameActionException {
+        for (int i = 1; i < rc.getRoundNum(); i++) {
+            for (Transaction ts : rc.getBlock(i)) {
 
                 int[] hqfinder = ts.getMessage();
-                if(hqfinder[0] == key && hqfinder[1] == 5){
+                if (hqfinder[0] == key && hqfinder[1] == 5) {
                     //if we find the key for Soup
                     System.out.println("found some SOUP!");
                     return new MapLocation(hqfinder[2], hqfinder[3]);
@@ -108,10 +110,6 @@ public class Communications {
         }
         return null;
     }
-
-
-
-
 
 
 }
