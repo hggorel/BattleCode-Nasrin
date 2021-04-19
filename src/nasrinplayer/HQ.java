@@ -10,13 +10,13 @@ public class HQ extends Building {
     //Directions we can use
     static Direction[] directions = {
             Direction.NORTH,
-            Direction.NORTHEAST,
             Direction.EAST,
-            Direction.SOUTHEAST,
             Direction.SOUTH,
-            Direction.SOUTHWEST,
             Direction.WEST,
-            Direction.NORTHWEST
+            Direction.NORTHEAST,
+            Direction.SOUTHEAST,
+            Direction.NORTHWEST,
+            Direction.SOUTHWEST
     };
 
 

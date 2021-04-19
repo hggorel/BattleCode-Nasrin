@@ -24,7 +24,7 @@ public class Miner extends Unit {
         MapLocation a = new MapLocation(6, 5);
         //Example in which the directAppoach works;
 
-        pathing.tanBugPath(rc.getLocation(),a);
+        pathing.tanBugPath(a);
 
 
 
