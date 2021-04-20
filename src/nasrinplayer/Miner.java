@@ -1,5 +1,4 @@
 package nasrinplayer;
-
 import battlecode.common.*;
 
 import java.util.Map;
@@ -7,7 +6,7 @@ import java.util.Map;
 
 public class Miner extends Unit {
 
-    boolean hasConributied = false;
+    boolean hasContributed = false;
     boolean currentlyWalking = true;
     boolean soupMining = false;
     MapLocation[] soups;
@@ -20,15 +19,79 @@ public class Miner extends Unit {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
+        //If full and cannot get any more soup -- go to close refinery or HQ to deposit
+        if(rc.getSoupCarrying()>=100){
+            //look for repository
+            //how do i look for a repository?
+
+            //look for HQ
+            MapLocation hq = comms.getHqLoc();
+            pathing.tanBugPath(hq);
+            MapLocation currentLoc = rc.getLocation();
+            tryRefine(currentLoc.directionTo(hq));
+        }
+        else{   //if not full and can keep looking for soup
+            //first look immediately next to miner
+            //list of soup that are immediately by the miner
+            MapLocation[] nextToSoup = rc.senseNearbySoup(1);
+
+            MapLocation[] nearbySoup = rc.senseNearbySoup();
+
+            if(nextToSoup.length > 0) {
+                //Mine all soup that's immediately next to the robot until full
+                MapLocation currentLocation = rc.getLocation();
+                for(MapLocation loc: nextToSoup){
+                    Direction possDir = currentLocation.directionTo(loc);
+                    tryMine(possDir);
+                }
+            }
+            else if (nearbySoup.length > 0){
+                //If no things next to us, look at the ones within the possible distances and move to the closest
+                int minDistance = 1000000;
+                MapLocation targetSoup = rc.getLocation();
+                for(int i=0; i<nearbySoup.length; i++){
+                    int distance = rc.getLocation().distanceSquaredTo(nearbySoup[i]);
+                    if (distance<minDistance) {
+                        minDistance=distance;
+                        targetSoup = nearbySoup[i];
+                    }
+                }
+                pathing.tanBugPath(targetSoup);
+                tryMine(rc.getLocation().directionTo(targetSoup));
+            }
+            else{
+
+                //ways to build different buildings... where to use this?
+                rc.buildRobot(RobotType.REFINERY, randomDirection());
+                rc.buildRobot(RobotType.FULFILLMENT_CENTER, randomDirection());
+                rc.buildRobot(RobotType.DESIGN_SCHOOL, randomDirection());
+                rc.buildRobot(RobotType.VAPORATOR, randomDirection());
+                rc.buildRobot(RobotType.NET_GUN, randomDirection());
+            }
+
+
+
+
+            //ADD IN STUFF HERE FOR MOVING TO MINE THINGS THAT ARE FARTHER AWAYYY
+
+
+
+            //.......
+
+            //.......
+
+        }
+
+        for(Direction dir: Direction.allDirections()) {
+            if(rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, dir)){
+                rc.buildRobot(RobotType.FULFILLMENT_CENTER, dir);
+            }
+        }
         //look for soup and try to mine :)
         MapLocation a = new MapLocation(6, 5);
         //Example in which the directAppoach works;
 
         pathing.tanBugPath(a);
-
-
-
-
 
     }
 
@@ -71,6 +134,4 @@ public class Miner extends Unit {
             return true;
         } else return false;
     }
-
-
 }
