@@ -1,174 +1,187 @@
 package nasrinplayer;
 import battlecode.common.*;
 
-public class DeliveryDrone extends Unit{
+public class DeliveryDrone extends Unit {
     public DeliveryDrone(RobotController robotController) {
         super(robotController);
     }
 
     static MapLocation HQLocation; //the location of the home HQ
     static MapLocation EnemyHQLoc; //the location of the enemy HQ
+    MapLocation droneLocation = rc.getLocation();
+
+    Team A; //player team
+    Team B; //enemy team
 
     //a method to sense all nearby bots
-    static boolean nearbyRobot(RobotType target) throws GameActionException{
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo r : robots){
-            if(r.getType() == target){
+    boolean nearbyRobot(RobotType target) throws GameActionException {
+        RobotInfo[] robots = rc.senseNearbyRobots(24);
+        for (RobotInfo r : robots) {
+            if (r.getType() == target) {
                 return true;
             }
         }
+        return false;
     }
 
+    /**
     //method to sense all nearby enemy, non-building, robots specifically
-    static boolean nearbyEnemyRobot(RobotInfo target) throws GameActionException{
+    boolean nearbyEnemyRobot(RobotInfo target) throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo r : robots){
+        for (RobotInfo r : robots) {
             //get all the robots' type
-            r.getType(); 
+            r.getType();
             //if the nearby bot is not a player bot and is not a building...
-            if(r.isPlayer == false && r.isBuilding == false){
+            if (r.getTeam() == B && r.tryToPickUpEnemy == false) {
                 int enemyBotID = rc.getID();
             }
         }
+        return false;
+    }
+     */
+
+    /**
+     * drone will try to pick up an enemy unit
+     * @param dir
+     * @return
+     * @throws GameActionException
+     */
+    boolean tryToPickUpEnemy(Direction dir) throws GameActionException {
+        RobotInfo[] robots = rc.senseNearbyRobots(24, B);
+        for (RobotInfo r : robots) {
+            int robotID = r.getID();
+            if(rc.canPickUpUnit(robotID)){
+                rc.pickUpUnit(robotID);
+                return true;
+            }
+        }
+        return false;
     }
 
-    public void takeTurn() throws GameActionException{
+    /**
+     * drone will try to pick up a friendly unit
+     * @param dir
+     * @return
+     * @throws GameActionException
+     */
+    boolean tryToPickUpFriend(Direction dir) throws GameActionException{
+        RobotInfo[] robots = rc.senseNearbyRobots(24, A);
+        for(RobotInfo r : robots){
+            int robotID = r.getID();
+            if(rc.canPickUpUnit(robotID)){
+                rc.pickUpUnit(robotID);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        Robot drone = null; 
         /**
-         *drones will pick up tiles/robots, place them back down
+         * drones will pick up tiles/robots, place them back down
+         *
+         * Drones have a sensor radius of 24 and can fly over all units,
+         * besides buildings and other drones. Drones can pick up any units, regardless of team
+         *
          *
          * Planned Tactics:
          *
-         * Priority Alpha: Find Enemy HQ, if and only if it has yet to be found
+         * [1] Find Enemy HQ, if and only if it has yet to be found
          *
-         * Priority Beta: Engage defensive mode, encircle team HQ (not enemy) and defend against
+         * [2] Engage defensive mode, encircle team HQ (not enemy) and defend against
          * enemy units by sensing surroundings and picking up any enemies that near the HQ.
          * Drop enemy units into nearest water pool, then return to formation.
-         *
-         *
-         *
-         * https://www.youtube.com/watch?v=B0dYT3KZd9Y - battlecode lecture vids
-         *
          */
 
-       
 
-        /**
-         * Priority Alpha: All drones should find home and enemy base locations
-         */
-        if(HQLocation == null){
+
+        //[1] All drones should find home and enemy base locations
+
+        if (HQLocation == null) {
             //search area for HQ
-            RobotInfo[] agents = rc.senseNearbyRobots();
-            for(RobotInfo agent : agents){
+            RobotInfo[] agents = rc.senseNearbyRobots(24);
+            for (RobotInfo agent : agents) {
                 //RobotInfo contains: robot ID num, location, team, and type.
-                if(agent.type == RobotType.HQ && agent.team == rc.getTeam()){
+                if (agent.type == RobotType.HQ && agent.team == rc.getTeam()) {
                     //home team HQ found
                     HQLocation = agent.location;
                     //enemy HQ found (?)
+                } else if (agent.type == RobotType.HQ == false) {
+                    EnemyHQLoc = agent.location;
+                } else {
+                    //if the enemy's HQ location is already found
+                    System.out.println("Enemy HQ Location at: " + EnemyHQLoc);
                 }
-                else if(agent.type == RobotType.HQ && isPlayer() == false){
-                        EnemyHQLoc = agent.location;
-                    }
-                    else{
-                        //if the enemy's HQ location is already found
-                        System.out.println("Enemy HQ Location at: " + EnemyHQLoc);
-                    }
-                }
-            }else{
-                //if the HQ is already found, print the location
-                System.out.println("Home HQ Location at: " + HQLocation);
-                //get direction to location of home base, move to home
-                Direction directionToHQ  = rc.getLocation().directionTo(HQLocation);
-                tryMove(directionToHQ);
-
             }
+        } else {
+            //if the HQ is already found, print the location
+            System.out.println("Home HQ Location at: " + HQLocation);
+            //get direction to location of home base, move to home
+            Direction directionToHQ = rc.getLocation().directionTo(HQLocation);
+
+        }
+
+        HQLocation = comms.getHqLoc();
+        pathing.tanBugPath(HQLocation);
+
 
         /**
-         * Priority Beta: Assemble drones near home base, begin defend and destroy tactics
-         * 
-         * usefull methods:
-         * boolean senseFlooding(Map location loc)
+         * [2] Assemble drones near home base, begin defend and destroy tactics
+         *
          */
-       if(drone.currentlyHoldingUnit == false){
-        while(true){
-            if(tanBugPath(drone.location, HQLocation)== true){
-                break;
-                  //send the drones back to HQ location
-               Direction directionToHQ = rc.getLocation().directionTo(HQLocation);
-               if(tryMove(directionToHQ)){
-                   System.out.println("I am a Drone and I'm returning to HQ!");
+        //moving in all directions
+        for (Direction dir : Direction.allDirections()) {
+
+            //have the drones faff about
+            rc.move(dir);
+
+            //if/when they come across another bot, check if it can move over it
+            //if the drone is obstructed, try to redirect
+
+            if(!rc.canMove(Direction.NORTH)){
+                rc.move(Direction.NORTHEAST);
+                rc.move(dir);
             }
-             //assuming player team is team A and enemy is team B,
-             //sense enemy bots (team B) within drone radius and pick them up
-             RobotType[] robots = drone.senseNearbyRobots(24, B); //drone radius squared is 24
-             for(RobotType r : robots){
-                 //if the robot is able to be picked up
-                 if(r.canBePickedUp == true && drone.currentlyHoldingUnit == false){
-                     drone.pickUpUnit(r);
-                     tryMove(randomDirection());
-                     for(Directions dir : directions){
-                         //sense nearby water and try to path for dropping?
-                     }
-                 }
-             }
+            else if(!rc.canMove(Direction.SOUTH)){
+                rc.move(Direction.SOUTHEAST);
+                rc.move(dir);
+            }
+            else if(!rc.canMove(Direction.EAST)){
+                rc.move(Direction.NORTHEAST);
+                rc.move(dir);
+            }
+            //drone will check for flooded tiles for yeeting purposes
+            rc.senseNearbyRobots(24);
+            //look for flooded areas nearby
+            boolean floodedLoc = rc.senseFlooding(droneLocation.add(dir));
+            if(floodedLoc == true){
+                //check if the drone is actually holding anything
+                rc.isCurrentlyHoldingUnit();
+                if(rc.isCurrentlyHoldingUnit() == true){
+                    //assuming center is down and no particular direction, drop the unit in the flood
+                    rc.dropUnit(Direction.CENTER);
+                }
+            }
+
+
+
+            //MapLocation[] robots = rc.adjacentLocation(droneLocation);
+            //tryToPickUpEnemy(Direction.NORTH);
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for(RobotInfo r : robots){
+                boolean occupied = rc.isLocationOccupied(rc.adjacentLocation(dir));
+                if(rc.isLocationOccupied(rc.adjacentLocation(dir))){
+                    rc.getType();
+                    //rc.canMove(rc.adjacentLocation(dir));
+                }
+            }
+
+
+            } //end for
+
+
         }
-      }
-    }
+}
 
-      //moving in all directions
-    for(Direction dir : directions){
-
-              //have the drones faff about
-               tryMove(randomDirection()); 
-               //if/when they come across another bot, check if it can move over it
-               if(adjacentLocation(drone.location).isLocationOccupied() == true){
-
-               //a drone cannot occupy a spot that is taken by another drone or building
-               
-               boolean isDrone = nearbyRobot(DELIVERY_DRONE);
-               boolean isbuilding = nearbyRobot(HQ || FULFILLMENT_CENTER || REFINERY || DESIGN_SCHOOL || VAPORATOR);
-               if(isDrone == false){
-                   //move elsewhere?
-                   drone.tryMove(dir);
-               }else if(isbuilding == false){
-                   //move elsewhere?
-                   drone.tryMove(dir);
-               }
-              /*
-              switch(rc.nearbyRobot()){
-                  case HQ:
-                  drone.canMove() == false;
-                  break;
-
-                  case DELIVERY_DRONE:
-                  drone.canMove() == false;
-                  break;
-
-                  case DESIGN_SCHOOL:
-                  drone.canMove() == false;
-                  break;
-
-                  case FULFILLMENT_CENTER:
-                  drone.canMove() == false;
-                  break;
-
-                  case REFINERY:
-                  drone.canMove() == false;
-                  break;
-
-                  case VAPORATOR:
-                  drone.canMove() == false;
-
-              }
-              */
-          }
-      
-   }//end for
-
-
-        
-
-}// end of take turn
-}//end of class
