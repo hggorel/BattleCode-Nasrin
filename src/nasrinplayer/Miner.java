@@ -10,6 +10,8 @@ public class Miner extends Unit {
     boolean currentlyWalking = true;
     boolean soupMining = false;
     MapLocation[] soups;
+    MapLocation lastUsedRefinery;
+    MapLocation targetLocation;
 
     public Miner(RobotController robotController) {
 
@@ -19,20 +21,64 @@ public class Miner extends Unit {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        //If full and cannot get any more soup -- go to close refinery or HQ to deposit
-        if(rc.getSoupCarrying()>=100){
-            //look for repository
-            //how do i look for a repository?
+        RobotInfo[] nearbyFriendlyRobots = rc.senseNearbyRobots(-1, rc.getTeam());
 
-            //look for HQ
-            MapLocation hq = comms.getHqLoc();
-            pathing.tanBugPath(hq);
-            MapLocation currentLoc = rc.getLocation();
-            tryRefine(currentLoc.directionTo(hq));
+        //first check to see if in range of any enemy netguns or drones
+        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        MapLocation myLocation = rc.getLocation();
+
+        /*TODO: make a better choice if the opposite distance isn't an option.
+         *Maybe go through and store all the dangerous locations and then rule them out...
+         *that way it checks to see if you are running back into a drone too!!! */
+        for(RobotInfo robot: nearbyEnemyRobots){
+            switch(robot.type){
+                case NET_GUN:
+                    //check to see if in range of enemy net gun -- if so retreat
+                    //farthest net gun range is 13... so
+                    MapLocation gunLocation = robot.getLocation();
+                    int distance = myLocation.distanceSquaredTo(gunLocation);
+                    if(distance <=13){
+                        //this means we are in range -- so want to retreat
+                        Direction gunsDirection = myLocation.directionTo(gunLocation);
+                        if(rc.canMove(gunsDirection.opposite())){
+                            rc.move(gunsDirection.opposite());
+                        }
+                        else{
+                            MapLocation destination = myLocation.subtract(gunsDirection);
+                            pathing.tanBugPath(destination);
+                        }
+                    }
+                    break;
+
+                case DELIVERY_DRONE:
+                    //check to see if in range of drone -- avoid getting picked up
+                    int dist = myLocation.distanceSquaredTo(robot.getLocation());
+                    if(dist <= 13){
+                        Direction dronesDirection = myLocation.directionTo(robot.getLocation());
+                        if(rc.canMove(dronesDirection.opposite())){
+                            rc.move(dronesDirection.opposite());
+                        }
+                        else{
+                            MapLocation destination = myLocation.subtract(dronesDirection);
+                            pathing.tanBugPath(destination);
+                        }
+                    }
+            }
         }
-        else{   //if not full and can keep looking for soup
-            //first look immediately next to miner
-            //list of soup that are immediately by the miner
+
+        //If full and cannot get any more soup -- go to close refinery or HQ to deposit
+        if(rc.getSoupCarrying()>=RobotType.MINER.soupLimit - GameConstants.SOUP_MINING_RATE){
+            //look for repository
+            if(lastUsedRefinery==null){ //then we're early enough in the game that HQ is it
+                MapLocation hqLoc = comms.getHqLoc();
+                targetLocation = hqLoc;
+            }
+            else{
+                targetLocation = lastUsedRefinery;
+            }
+        }
+        else{
+            //if not full and can keep looking for soup, first look immediately next to us
             MapLocation[] nextToSoup = rc.senseNearbySoup(1);
 
             MapLocation[] nearbySoup = rc.senseNearbySoup();
@@ -60,45 +106,25 @@ public class Miner extends Unit {
                 tryMine(rc.getLocation().directionTo(targetSoup));
             }
             else{
-
-                //ways to build different buildings... where to use this?
-                rc.buildRobot(RobotType.REFINERY, randomDirection());
-                rc.buildRobot(RobotType.FULFILLMENT_CENTER, randomDirection());
-                rc.buildRobot(RobotType.DESIGN_SCHOOL, randomDirection());
-                rc.buildRobot(RobotType.VAPORATOR, randomDirection());
-                rc.buildRobot(RobotType.NET_GUN, randomDirection());
+                //TODO: WHAT TO DO HERE????
             }
-
-
-
-
-            //ADD IN STUFF HERE FOR MOVING TO MINE THINGS THAT ARE FARTHER AWAYYY
-
-
-
-            //.......
-
-            //.......
 
         }
 
-        for(Direction dir: Direction.allDirections()) {
-            if(rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, dir)){
-                rc.buildRobot(RobotType.FULFILLMENT_CENTER, dir);
-            }
-        }
-        //look for soup and try to mine :)
-        MapLocation a = new MapLocation(6, 5);
-        //Example in which the directAppoach works;
+        /*TODO:
+            1. FIGURE OUT WHAT TO DO WITH THE TARGET LOCATION -- SEE IF FAR ENOUGH
+            FROM HQ THAT BUILDING A NEW REFINERY IS THE BEST BET
+            2. WORK ON MAKING THE IMMEDIATE BACKTRACKING SMARTER IF RUNS INTO ENEMIES
+         */
 
-        pathing.tanBugPath(a);
+        //ways to build different buildings... where to use this?
+        rc.buildRobot(RobotType.REFINERY, randomDirection());
+        rc.buildRobot(RobotType.FULFILLMENT_CENTER, randomDirection());
+        rc.buildRobot(RobotType.DESIGN_SCHOOL, randomDirection());
+        rc.buildRobot(RobotType.VAPORATOR, randomDirection());
+        rc.buildRobot(RobotType.NET_GUN, randomDirection());
 
     }
-
-
-    //if full, deposit soup at refinery
-    //if not full, see if we know there's soup places and go there
-    //if not full, and don't have any saved locations .. move randomly
 
     /**
      * Attempts to mine soup in a given direction.
