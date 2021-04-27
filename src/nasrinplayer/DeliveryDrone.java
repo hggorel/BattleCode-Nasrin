@@ -200,6 +200,7 @@ public class DeliveryDrone extends Unit {
                 tryToPickUpEnemy(dir);
                 Direction toEnemyHQ = rc.getLocation().directionTo(EnemyHQLoc);
                 rc.move(toEnemyHQ);
+                rc.dropUnit(Direction.CENTER);
             }
         } //end for
     }
