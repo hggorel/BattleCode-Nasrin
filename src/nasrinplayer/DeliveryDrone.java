@@ -24,7 +24,7 @@ public class DeliveryDrone extends Unit {
         return false;
     }
 
-    /**
+
     //method to sense all nearby enemy, non-building, robots specifically
     boolean nearbyEnemyRobot(RobotInfo target) throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots();
@@ -32,13 +32,13 @@ public class DeliveryDrone extends Unit {
             //get all the robots' type
             r.getType();
             //if the nearby bot is not a player bot and is not a building...
-            if (r.getTeam() == B && r.tryToPickUpEnemy == false) {
+            if (r.getTeam() == B) {
                 int enemyBotID = rc.getID();
             }
         }
         return false;
     }
-     */
+
 
     /**
      * drone will try to pick up an enemy unit
@@ -59,7 +59,7 @@ public class DeliveryDrone extends Unit {
     }
 
     /**
-     * drone will try to pick up a friendly unit
+     * drone will try to pick up a friendly unit, most likely will not be used
      * @param dir
      * @return
      * @throws GameActionException
@@ -97,34 +97,30 @@ public class DeliveryDrone extends Unit {
 
 
 
-        //[1] All drones should find home and enemy base locations
+        //[1] All drones should try to find home and enemy base locations
+        HQLocation = comms.getHqLoc();
 
         if (HQLocation == null) {
             //search area for HQ
             RobotInfo[] agents = rc.senseNearbyRobots(24);
             for (RobotInfo agent : agents) {
                 //RobotInfo contains: robot ID num, location, team, and type.
-                if (agent.type == RobotType.HQ && agent.team == rc.getTeam()) {
+                if (agent.type == RobotType.HQ && agent.getTeam() == A) {
                     //home team HQ found
                     HQLocation = agent.location;
                     //enemy HQ found (?)
-                } else if (agent.type == RobotType.HQ == false) {
+                } else if (agent.type == RobotType.HQ == true && agent.getTeam() == B) {
                     EnemyHQLoc = agent.location;
                 } else {
                     //if the enemy's HQ location is already found
-                    System.out.println("Enemy HQ Location at: " + EnemyHQLoc);
+                    System.out.println("Drone Reporting: Enemy HQ Location at: " + EnemyHQLoc);
                 }
             }
         } else {
             //if the HQ is already found, print the location
-            System.out.println("Home HQ Location at: " + HQLocation);
-            //get direction to location of home base, move to home
-            Direction directionToHQ = rc.getLocation().directionTo(HQLocation);
+            System.out.println("Drone Reporting: Home HQ Location at: " + HQLocation);
 
         }
-
-        HQLocation = comms.getHqLoc();
-        pathing.tanBugPath(HQLocation);
 
 
         /**
@@ -134,24 +130,58 @@ public class DeliveryDrone extends Unit {
         //moving in all directions
         for (Direction dir : Direction.allDirections()) {
 
+            //find HQ
+            HQLocation = comms.getHqLoc();
+            pathing.tanBugPath(HQLocation);
+
             //have the drones faff about
             rc.move(dir);
 
-            //if/when they come across another bot, check if it can move over it
-            //if the drone is obstructed, try to redirect
+            //as long as they can move, drones should grab what they can
+            if(rc.canMove(Direction.NORTH)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.NORTHEAST)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.NORTHWEST)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.SOUTH)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.SOUTHEAST)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.SOUTHWEST)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.EAST)){
+                tryToPickUpEnemy(dir);
+            }
+            else if(rc.canMove(Direction.WEST)){
+                tryToPickUpEnemy(dir);
+            }
 
-            if(!rc.canMove(Direction.NORTH)){
+            //if/when they come across another bot, check if it can move over it
+            //if the drone is obstructed, try to redirect elsewhere
+
+            if(rc.canMove(Direction.NORTH) == false){
                 rc.move(Direction.NORTHEAST);
                 rc.move(dir);
             }
-            else if(!rc.canMove(Direction.SOUTH)){
+            else if(rc.canMove(Direction.SOUTH) == false){
                 rc.move(Direction.SOUTHEAST);
                 rc.move(dir);
             }
-            else if(!rc.canMove(Direction.EAST)){
+            else if(rc.canMove(Direction.EAST) == false){
                 rc.move(Direction.NORTHEAST);
                 rc.move(dir);
             }
+
+            /**
+             * Drones should look for floods to drop enemies in
+             */
             //drone will check for flooded tiles for yeeting purposes
             rc.senseNearbyRobots(24);
             //look for flooded areas nearby
@@ -159,29 +189,19 @@ public class DeliveryDrone extends Unit {
             if(floodedLoc == true){
                 //check if the drone is actually holding anything
                 rc.isCurrentlyHoldingUnit();
-                if(rc.isCurrentlyHoldingUnit() == true){
+                if(rc.isCurrentlyHoldingUnit() == true && rc.canDropUnit(Direction.CENTER)){
                     //assuming center is down and no particular direction, drop the unit in the flood
                     rc.dropUnit(Direction.CENTER);
                 }
             }
-
-
-
-            //MapLocation[] robots = rc.adjacentLocation(droneLocation);
-            //tryToPickUpEnemy(Direction.NORTH);
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for(RobotInfo r : robots){
-                boolean occupied = rc.isLocationOccupied(rc.adjacentLocation(dir));
-                if(rc.isLocationOccupied(rc.adjacentLocation(dir))){
-                    rc.getType();
-                    //rc.canMove(rc.adjacentLocation(dir));
-                }
+            //cow coverage. if drone senses a cow agent, try to pick it up and rain cows on enemy HQ?
+            rc.senseNearbyRobots(24);
+            if(rc.getType() == RobotType.COW){
+                tryToPickUpEnemy(dir);
+                Direction toEnemyHQ = rc.getLocation().directionTo(EnemyHQLoc);
+                rc.move(toEnemyHQ);
             }
-
-
-            } //end for
-
-
-        }
+        } //end for
+    }
 }
 
