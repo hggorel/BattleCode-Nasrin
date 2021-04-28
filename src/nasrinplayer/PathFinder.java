@@ -111,7 +111,7 @@ public class PathFinder {
         }
 
 
-        if (rc.getLocation().isAdjacentTo(target)) {
+        if (rc.getLocation().isWithinDistanceSquared(target,2)) {
             //First thing we have to check for is if we are there
             //This is the only method that will return true. Thus while(tanBugPath(current, target)==false){only go to the path}
             System.out.println("YOU ARE AT YOUR DESTINATION");
