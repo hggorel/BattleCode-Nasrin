@@ -16,6 +16,7 @@ public class PathFinder {
 
 
     static int stuckInt = 0;
+
     //Used to know if we need to go into BugMode
     static int bugDirection = 0;
     //Special case if there are no locations around us that are a wall in bugMode, mainly, if you move to a location that allows a move
