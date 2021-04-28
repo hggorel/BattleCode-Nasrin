@@ -46,8 +46,11 @@ public class DeliveryDrone extends Unit {
      * @return
      * @throws GameActionException
      */
+    Team enemy = rc.getTeam().opponent();
+    Team friend = rc.getTeam();
+
     boolean tryToPickUpEnemy(Direction dir) throws GameActionException {
-        RobotInfo[] robots = rc.senseNearbyRobots(24, B);
+        RobotInfo[] robots = rc.senseNearbyRobots(24, enemy);
         for (RobotInfo r : robots) {
             int robotID = r.getID();
             if(rc.canPickUpUnit(robotID)){
@@ -65,7 +68,7 @@ public class DeliveryDrone extends Unit {
      * @throws GameActionException
      */
     boolean tryToPickUpFriend(Direction dir) throws GameActionException{
-        RobotInfo[] robots = rc.senseNearbyRobots(24, A);
+        RobotInfo[] robots = rc.senseNearbyRobots(24, friend);
         for(RobotInfo r : robots){
             int robotID = r.getID();
             if(rc.canPickUpUnit(robotID)){
