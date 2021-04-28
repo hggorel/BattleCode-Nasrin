@@ -112,7 +112,7 @@ public class DeliveryDrone extends Unit {
                     //home team HQ found
                     HQLocation = agent.location;
                     //enemy HQ found (?)
-                } else if (agent.type == RobotType.HQ == true && agent.getTeam() == B) {
+                } else if (agent.type == RobotType.HQ == true && agent.getTeam() == enemy) {
                     EnemyHQLoc = agent.location;
                 } else {
                     //if the enemy's HQ location is already found
