@@ -159,7 +159,7 @@ public class Miner extends Unit {
 
 
         //if there's no design schools or fulfillment centers close -- build alternate which one we're building
-        if(rc.getRoundNum()<400){
+        if(rc.getRoundNum()<250){
             if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0 && numFulfillmentCenters==0){
                 boolean built=false;
                 tossUp++;

@@ -13,7 +13,7 @@ public class DesignSchool extends Building{
         super.takeTurn();
 
         //try to make landscapers :)
-        if(rc.getTeamSoup()>450){
+        if(rc.getTeamSoup()>200 && rc.getRoundNum()>250 && rc.getRoundNum()<=450){
             for(Direction dir : HQ.directions){
                 if(tryBuild(RobotType.LANDSCAPER, dir)){
                     numLandscapers++;
