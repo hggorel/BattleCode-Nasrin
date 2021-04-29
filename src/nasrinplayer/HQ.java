@@ -9,14 +9,14 @@ public class HQ extends Building {
 
     //Directions we can use
     static Direction[] directions = {
-            Direction.NORTH,
-            Direction.EAST,
-            Direction.SOUTH,
-            Direction.WEST,
             Direction.NORTHEAST,
-            Direction.SOUTHEAST,
+            Direction.NORTH,
+            Direction.WEST,
             Direction.NORTHWEST,
-            Direction.SOUTHWEST
+            Direction.SOUTHWEST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH
     };
 
 
@@ -29,7 +29,8 @@ public class HQ extends Building {
 
         super(robotController);
 
-        if (!(comms.HQloc)) {
+        if ((comms.HQloc)) {
+            System.out.println("UH OH");
             //The HQloc is set to true if a miner has found it in the blockchain, allowing us not to submit it to the block chain afterwards
             comms.sendHQLoc(rc.getLocation());
         }
@@ -43,7 +44,8 @@ public class HQ extends Building {
 
         //make miners :)
 
-        if (builtBeginningMiners < 3 && rc.getRoundNum()<250) {
+        if (builtBeginningMiners < 2) {
+
             for (Direction dir : HQ.directions) {
                 if (tryBuild(RobotType.MINER, dir)) {
                     builtBeginningMiners++;
@@ -53,5 +55,7 @@ public class HQ extends Building {
 
         }
 
+
+        //shoot down enemy :)
     }
 }

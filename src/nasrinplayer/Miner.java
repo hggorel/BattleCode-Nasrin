@@ -152,8 +152,8 @@ public class Miner extends Unit {
                 MapLocation targetSoup = rc.getLocation();
                 for(int i=0; i<nearbySoup.length; i++){
                     //if(soups.size()>0 && !soups.contains(nearbySoup[i])){
-                        //soups.add(nearbySoup[i]);
-                        //System.out.println("Added soup at location " + nearbySoup[i] + " to soups.")
+                    //soups.add(nearbySoup[i]);
+                    //System.out.println("Added soup at location " + nearbySoup[i] + " to soups.")
                     //}
                     int distance = rc.getLocation().distanceSquaredTo(nearbySoup[i]);
                     //if the new distance is closer, reset all relevant variables to save this as the closest
@@ -370,6 +370,7 @@ public class Miner extends Unit {
      * @throws GameActionException
      */
     boolean tryRefine(Direction dir) throws GameActionException {
+        //check to make sure allowed -- then deposit
         if (rc.isReady() && rc.canDepositSoup(dir)) {
             rc.depositSoup(dir, rc.getSoupCarrying());
             return true;
