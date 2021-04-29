@@ -100,6 +100,83 @@ public class Miner extends Unit {
             }
         }
 
+        RobotInfo[] nearbyFriendlyRobots = rc.senseNearbyRobots(-1, rc.getTeam());
+
+        //variables to be updated later
+        int numRefinery = 0;
+        int numNetGuns = 0;
+        int numMiners = 0;
+        int numDesignSchools = 0;
+        int numVaporators = 0;
+        int numFulfillmentCenters = 0;
+        int numLandscapers = 0;
+        MapLocation closestRefinery = hqLoc;
+
+        //loop through all of them
+        for(RobotInfo robot: nearbyFriendlyRobots){
+            switch(robot.type){
+                case NET_GUN:
+                    numNetGuns++;
+                    break;
+
+                case DESIGN_SCHOOL:
+                    numDesignSchools++;
+                    break;
+
+                case MINER:
+                    numMiners++;
+                    break;
+
+                case REFINERY:                  //if it's a refinery, we want to find the closest one
+                    numRefinery++;
+                    if(mode == RETURNING){      //only if in returning mode, otherwise we don't care
+                        //want to save the closest refinery
+                        int distance = myLocation.distanceSquaredTo(robot.getLocation());
+                        int minDistance = myLocation.distanceSquaredTo(hqLoc);
+                        //if new minimum, set it
+                        if(distance<minDistance){
+                            minDistance = distance;
+                            targetLocation = robot.getLocation();
+                            System.out.println("Setting target location to " + targetLocation.toString());
+                        }
+                    }
+                    break;
+
+                case FULFILLMENT_CENTER:
+                    numFulfillmentCenters++;
+                    break;
+
+                case VAPORATOR:
+                    numVaporators++;
+                    break;
+
+                case LANDSCAPER:
+                    numLandscapers++;
+                    break;
+            }
+        }
+
+        //if there's no design schools or
+        if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0){
+            boolean built=false;
+            for(Direction possDir: HQ.directions){
+                if(!built && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, possDir)){
+                    rc.buildRobot(RobotType.DESIGN_SCHOOL, possDir);
+                    built=true;
+                }
+            }
+        }
+
+        if(mode != RETURNING && rc.getTeamSoup()>400 && numFulfillmentCenters==0){
+            boolean built=false;
+            for(Direction possDir: HQ.directions){
+                if(!built && rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, possDir)){
+                    rc.buildRobot(RobotType.FULFILLMENT_CENTER, possDir);
+                    built=true;
+                }
+            }
+        }
+
         /*
         Now onto the second priority -- mining :) this is a BIG one
          */
@@ -198,17 +275,17 @@ public class Miner extends Unit {
         on this part of the map
          */
         //array of all the sensed robots
-        RobotInfo[] nearbyFriendlyRobots = rc.senseNearbyRobots(-1, rc.getTeam());
+        nearbyFriendlyRobots = rc.senseNearbyRobots(-1, rc.getTeam());
 
         //variables to be updated later
-        int numRefinery = 0;
-        int numNetGuns = 0;
-        int numMiners = 0;
-        int numDesignSchools = 0;
-        int numVaporators = 0;
-        int numFulfillmentCenters = 0;
-        int numLandscapers = 0;
-        MapLocation closestRefinery = hqLoc;
+        numRefinery = 0;
+        numNetGuns = 0;
+        numMiners = 0;
+        numDesignSchools = 0;
+        numVaporators = 0;
+        numFulfillmentCenters = 0;
+        numLandscapers = 0;
+        closestRefinery = hqLoc;
 
         //loop through all of them
         for(RobotInfo robot: nearbyFriendlyRobots){
