@@ -6,9 +6,6 @@ import java.util.Map;
 
 public class Miner extends Unit {
 
-    boolean hasContributed = false;
-    boolean currentlyWalking = true;
-    boolean soupMining = false;
     MapLocation[] soups;
     MapLocation lastUsedRefinery;
     MapLocation targetLocation;
@@ -28,6 +25,12 @@ public class Miner extends Unit {
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+
+        //to be edited out later.. just to see if running at all
+        //Direction toMove = randomDirection();
+        //if(rc.canMove(toMove) && rc.isReady()){
+        //rc.move(toMove);
+        //}
 
         //first check to see if in range of any enemy netguns or drones
         RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
@@ -86,7 +89,7 @@ public class Miner extends Unit {
             }
         }
         else if (mode == MINING){
-            //if not full and can keep looking for soup, first look immediately next to us
+            //if not full and can looking for soup, first look immediately next to us
             MapLocation[] nextToSoup = rc.senseNearbySoup(1);
 
             MapLocation[] nearbySoup = rc.senseNearbySoup();
@@ -110,8 +113,17 @@ public class Miner extends Unit {
                         targetSoup = nearbySoup[i];
                     }
                 }
-                pathing.tanBugPath(targetSoup);
+                while(!pathing.tanBugPath(targetSoup)){
+
+                }
                 tryMine(rc.getLocation().directionTo(targetSoup));
+            }
+            else if(rc.getRoundNum()<100){
+                Direction moveIn = randomDirection();
+                if(rc.canMove(moveIn) && rc.isReady()){
+                    rc.move(moveIn);
+                    System.out.println("Moving randomly!");
+                }
             }
             else{
                 mode = BUILDING;
@@ -150,6 +162,7 @@ public class Miner extends Unit {
                         if(distance<minDistance){
                             minDistance = distance;
                             targetLocation = robot.getLocation();
+                            System.out.println("Setting target location to " + targetLocation.toString());
                         }
                     }
                     break;
@@ -180,12 +193,15 @@ public class Miner extends Unit {
             }
             else if(distance <=36){
                 //move towards that refinery
-                pathing.tanBugPath(targetLocation);
+                while(!pathing.tanBugPath(targetLocation)){
+
+                }
             }
             else{
                 //build a refinery if possible
                 if(rc.isReady() && rc.canBuildRobot(RobotType.REFINERY, Direction.NORTH) && rc.getTeamSoup()>RobotType.REFINERY.cost){
                     rc.buildRobot(RobotType.REFINERY, Direction.NORTH);
+                    System.out.println("Building refinery!");
                 }
                 else{
                     mode = BUILDING;
@@ -198,19 +214,24 @@ public class Miner extends Unit {
             if(numEnemyDrones>0 && numNetGuns==0 && rc.getTeamSoup()>RobotType.NET_GUN.cost){
                 toBuild = RobotType.NET_GUN;
             }
-            else if(lastUsedRefinery == hqLoc && myLocation.distanceSquaredTo(hqLoc) > 36 && numRefinery==0 && rc.getTeamSoup()>RobotType.REFINERY.cost){
+            if(lastUsedRefinery == hqLoc && myLocation.distanceSquaredTo(hqLoc) > 36 && numRefinery==0 && rc.getTeamSoup()>RobotType.REFINERY.cost){
                 toBuild = RobotType.REFINERY;
             }
-            else if(numDesignSchools==0 && rc.getTeamSoup()>RobotType.DESIGN_SCHOOL.cost){
+            if(numDesignSchools==0 && rc.getTeamSoup()>RobotType.DESIGN_SCHOOL.cost){
                 toBuild = RobotType.DESIGN_SCHOOL;
+            }
+            if(numVaporators == 0 && rc.sensePollution(myLocation)>5){
+                toBuild = RobotType.VAPORATOR;
             }
         }
 
         //ways to build different buildings... where to use this?
-        rc.buildRobot(RobotType.FULFILLMENT_CENTER, randomDirection());
-        rc.buildRobot(RobotType.DESIGN_SCHOOL, randomDirection());
-        rc.buildRobot(RobotType.VAPORATOR, randomDirection());
-        rc.buildRobot(RobotType.NET_GUN, randomDirection());
+        for(int i=0; i<8; i++){
+            if(tryBuild(toBuild, HQ.directions[i])){
+                System.out.println("Building a " + toBuild.name());
+                i=8;        //this stops the loop, we don't want it to build them in all adjacent squares
+            }
+        }
 
     }
 
@@ -249,3 +270,4 @@ public class Miner extends Unit {
         } else return false;
     }
 }
+
