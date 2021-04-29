@@ -472,4 +472,3 @@ public class Miner extends Unit {
         } else return false;
     }
 }
-

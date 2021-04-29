@@ -12,6 +12,7 @@ public class PathFinder {
 
 
     static boolean bugMode = false;
+    static int unstuck = 0;
     static boolean predeterminedTanPath = false;
 
 
@@ -58,6 +59,10 @@ public class PathFinder {
 
     }
 
+    boolean goToWorstCase(MapLocation destination) throws GameActionException {
+        return goToWorstCase(rc.getLocation().directionTo(destination));
+    }
+
 
     /*
     This method allows the robot to take the most "optimal" approach to a given location
@@ -76,9 +81,9 @@ public class PathFinder {
         for (Direction d : HQ.directions) {
 
             if (tryMove(d)) {
-                bugMode=false;
-                predeterminedTanPath=false;
-                lastWall=null;
+                bugMode = false;
+                predeterminedTanPath = false;
+                lastWall = null;
                 if (rc.getLocation().distanceSquaredTo(target) <= shortestDistance.get(0)) {
                     shortestDistance.add(0, rc.getLocation().distanceSquaredTo(target));
 
@@ -104,6 +109,7 @@ public class PathFinder {
 
         }
 
+
         if (rc.getLocation().distanceSquaredTo(target) < shortestDistance.get(0)) {
             shortestDistance.set(0, rc.getLocation().distanceSquaredTo(target));
             System.out.println("Out of every mode");
@@ -115,12 +121,20 @@ public class PathFinder {
 
 
         if (rc.getLocation().isWithinDistanceSquared(target, 2)) {
+            System.out.println("THIS IS THE TARGET LOCATION" + target);
+
+            if (tryMove(rc.getLocation().directionTo(target))) {
+                System.out.println("WE TRIED AND GOT CLOSER");
+
+            } else {
+                System.out.println("As close as we can get");
+            }
             //First thing we have to check for is if we are there
             //This is the only method that will return true. Thus while(tanBugPath(current, target)==false){only go to the path}
             System.out.println("YOU ARE AT YOUR DESTINATION");
             return true;
 
-        } else if (stuckInt >= 5 || bugMode) {
+        } else if (bugMode) {
             //If we are in the same location for 5 moves or more we are stuck and need to go into bug mode
             bugMode = true;
 
@@ -129,6 +143,20 @@ public class PathFinder {
                 System.out.println("AND WE MOVED BUG MODE" + "LastWall" + lastWall);
 
                 return false;
+            }
+
+
+        } else if (stuckInt >= 5) {
+            if (determinedPathMove()) {
+                stuckInt = 0;
+
+
+                bugMode = false;
+                predeterminedTanPath = false;
+                stuckInt = 0;
+                lastWall = null;
+            } else {
+                bugMode = true;
             }
 
 
@@ -167,6 +195,8 @@ public class PathFinder {
             if (rc.senseFlooding(rc.getLocation().add(dirToTarget)) || rc.senseElevation(rc.getLocation().add(dirToTarget)) > rc.senseElevation(rc.getLocation()) + 3 || rc.senseElevation(rc.getLocation().add(dirToTarget)) < rc.senseElevation(rc.getLocation()) - 3) {
                 System.out.println("It happens to be the case that the Direction to targets isnt safe");
                 dangerousLocations.put(rc.getLocation().add(dirToTarget), "water");
+
+
             } else if (rc.senseRobotAtLocation(rc.getLocation().add(dirToTarget)) != null) {
                 System.out.println("There is a robot in our way Maybe the annoying cow? We will wait");
                 if (finalTanModeCheck(rc.getLocation(), rc.getLocation(), target)) {
@@ -270,6 +300,14 @@ public class PathFinder {
 
 
     boolean determinedPathMove() throws GameActionException {
+        if (!toMove.isEmpty() && rc.senseRobotAtLocation(rc.getLocation().add(toMove.get(toMove.size() - 1))) != null) {
+            toMove.clear();
+            bugMode = true;
+            predeterminedTanPath = false;
+            lastWall = null;
+
+
+        }
 
         if (tryMove(toMove.get(toMove.size() - 1))) {
             toMove.remove(toMove.size() - 1);
@@ -372,7 +410,7 @@ public class PathFinder {
         } catch (GameActionException e) {
 
             System.out.println("CATCH");
-            directApproach(rc.getLocation(),target);
+            directApproach(rc.getLocation(), target);
             //This doesnt do much but if we are looking at the edge of the map it allows us to keep lookin
             wallMode = true;
 
@@ -440,7 +478,7 @@ public class PathFinder {
             }
         } catch (GameActionException e) {
             System.out.println("CATCH");
-            directApproach(rc.getLocation(),target);
+            directApproach(rc.getLocation(), target);
             //This doesnt do much but if we are looking at the edge of the map it allows us to keep lookin
             wallMode = true;
 
@@ -481,7 +519,7 @@ public class PathFinder {
                 }
             }
         } catch (GameActionException e) {
-            directApproach(rc.getLocation(),target);
+            directApproach(rc.getLocation(), target);
             westWall = rc.getLocation().y;
 
 
@@ -542,19 +580,29 @@ public class PathFinder {
                                 }
 
                             }
-                        }
+                        }//End of for loop
 
-                        while (!lastWall.equals(rc.getLocation().add(Direction.WEST))) {
-                            //Move west until we hit the wall
-                            if ((!rc.senseFlooding(rc.getLocation().add(Direction.WEST)) && rc.senseElevation(rc.getLocation().add(Direction.WEST)) < rc.senseElevation(rc.getLocation()) + 3 && rc.senseElevation(rc.getLocation().add(Direction.WEST)) > rc.senseElevation(rc.getLocation()) - 3) && tryMove(Direction.WEST)) {
-                                System.out.println("BUGGIN West");
-                                lastWall = null;
-                                return false;
-                            } else {
-                                //if we can move it must be a wall
-                                lastWall = rc.getLocation().add(Direction.WEST);
-                                System.out.println("lastWall" + lastWall);
+                        stuckInt++;
+                        System.out.println("PLEASE NOTICE ME IN THE LOGS" + stuckInt);
+
+
+                        while (true) {
+                            if(rc.getType()==RobotType.DELIVERY_DRONE){
+                                tryMoveDeliveryDrone(rc.getLocation().directionTo(target));
                             }
+
+                            goToWorstCase(target);
+                            unstuck++;
+                            if (unstuck >= 10) {
+                                bugMode = false;
+                                predeterminedTanPath = false;
+                                stuckInt = 0;
+                                unstuck = 0;
+                                return false;
+
+                            }
+
+
                         }
 
 
@@ -604,7 +652,7 @@ public class PathFinder {
         for (Direction dr : HQ.directions) {
             System.out.println("THIS DIRECTION CHECKED" + dr);
 
-            if (rc.senseFlooding(firstMove.add(dr)) || rc.senseElevation(firstMove.add(dr)) > rc.senseElevation(firstMove) + 3) {
+            if (rc.senseFlooding(firstMove.add(dr)) || rc.senseElevation(firstMove.add(dr)) > rc.senseElevation(firstMove) + 3 || rc.senseRobotAtLocation(firstMove.add(dr)) != null) {
                 dangerousLocations.put(rc.getLocation().add(dr), "water");
                 System.out.println("THIS DIRECTION CHECKED and dangerous" + dr);
 
@@ -631,7 +679,7 @@ public class PathFinder {
                     System.out.println("THIS DIRECTION CHECKED IN ELSE" + dr + third);
 
 
-                    if (rc.senseFlooding(firstMove.add(dr).add(third)) || rc.senseElevation(firstMove.add(dr).add(third)) > rc.senseElevation(firstMove.add(dr)) + 3 || rc.senseElevation(firstMove.add(dr).add(third)) < rc.senseElevation(firstMove.add(dr)) - 3) {
+                    if (rc.senseFlooding(firstMove.add(dr).add(third)) || rc.senseElevation(firstMove.add(dr).add(third)) > rc.senseElevation(firstMove.add(dr)) + 3 || rc.senseElevation(firstMove.add(dr).add(third)) < rc.senseElevation(firstMove.add(dr)) - 3 || rc.senseRobotAtLocation(firstMove.add(dr).add(third)) != null) {
                         dangerousLocations.put(firstMove.add(dr).add(third), "water");
 
 
@@ -689,6 +737,13 @@ public class PathFinder {
         }
     }
 
+    boolean tryMoveDeliveryDrone(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
 
     /*
     This is meant to get the round in which the TileFloods, This is computationally expensive for high elevations so it only checks if it will flood within the next three rounds,
@@ -713,6 +768,25 @@ public class PathFinder {
             //else it will be flooded
         }
 
+    }
+
+
+    boolean tryMoveWorstCase(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canMove(dir) && rc.senseElevation(rc.getLocation()) > rc.senseElevation(rc.getLocation()) + 3 && rc.senseElevation(rc.getLocation()) < rc.senseElevation(rc.getLocation()) - 3 && !rc.senseFlooding(rc.getLocation().add(dir))) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
+
+    // tries to move in the general direction of dir
+    boolean goToWorstCase(Direction dir) throws GameActionException {
+        Direction[] toTry = {dir, dir.rotateLeft(), dir.rotateRight(), dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight()};
+        for (Direction d : toTry) {
+            if (tryMove(d))
+                return true;
+        }
+        return false;
     }
 
 
