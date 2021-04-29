@@ -20,8 +20,7 @@ public class FulfillmentCenter extends Building{
         //get total team soup. drones cost 150 each
         soupCount = rc.getTeamSoup();
         //if fulfillment center can afford, build drones.
-        if(soupCount >= 150){
-
+        if(soupCount >= 400){
             for(Direction dir : Direction.allDirections()){
                 if(tryBuild(RobotType.DELIVERY_DRONE, dir)){
                     droneCount++;

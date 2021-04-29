@@ -25,6 +25,7 @@ public class HQ extends Building {
     static int builtBeginningMiners = 0;
     //The number of miners we have build, I am distinguishing the beginning miners, as the beginning stage of the defense
 
+    static int totalBuiltMiners = 0;
 
     public HQ(RobotController robotController) throws GameActionException {
 
@@ -47,15 +48,27 @@ public class HQ extends Building {
 
         //make miners :)
 
-        if (builtBeginningMiners < 2) {
+        if (builtBeginningMiners < 5) {
 
             for (Direction dir : HQ.directions) {
                 if (tryBuild(RobotType.MINER, dir)) {
                     builtBeginningMiners++;
+                    totalBuiltMiners++;
                 }
 
             }
 
+        }
+
+        //now maybe in the first 200 rounds, every 10 check to see if it can make a miner?
+        if(builtBeginningMiners==5 && totalBuiltMiners<=8 && rc.getRoundNum()<200){
+            if(rc.getRoundNum()%25==0){
+                for(Direction dir: HQ.directions){
+                    if(tryBuild(RobotType.MINER, dir)){
+                        totalBuiltMiners++;
+                    }
+                }
+            }
         }
 
 

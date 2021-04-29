@@ -17,6 +17,7 @@ public class Miner extends Unit {
     MapLocation targetLocation;
     MapLocation lastMinedSoup;
     int numRandomMoves=0;
+    int tossUp=0;
 
     //set up different modes for the miner -- mining, building, returning, fleeing
     final int MINING = 1;
@@ -156,23 +157,48 @@ public class Miner extends Unit {
             }
         }
 
-        //if there's no design schools or
-        if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0){
-            boolean built=false;
-            for(Direction possDir: HQ.directions){
-                if(!built && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, possDir)){
-                    rc.buildRobot(RobotType.DESIGN_SCHOOL, possDir);
-                    built=true;
+
+        //if there's no design schools or fulfillment centers close -- build alternate which one we're building
+        if(rc.getRoundNum()<400){
+            if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0 && numFulfillmentCenters==0){
+                boolean built=false;
+                tossUp++;
+                if(tossUp%2==0){
+                    for(Direction possDir: HQ.directions){
+                        if(!built && rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, possDir)){
+                            //System.out.println("BUILDING A FC, TOTAL NUM: " + numTotalFCs);
+                            rc.buildRobot(RobotType.FULFILLMENT_CENTER, possDir);
+                            built=true;
+                            //numTotalFCs++;
+                        }
+                    }
+                }
+                else{
+                    for(Direction possDir: HQ.directions){
+                        if(!built && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, possDir)){
+                            rc.buildRobot(RobotType.DESIGN_SCHOOL, possDir);
+                            built=true;
+                        }
+                    }
+                }
+
+            }
+            else if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0){
+                boolean built=false;
+                for(Direction possDir: HQ.directions){
+                    if(!built && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, possDir)){
+                        rc.buildRobot(RobotType.DESIGN_SCHOOL, possDir);
+                        built=true;
+                    }
                 }
             }
-        }
-
-        if(mode != RETURNING && rc.getTeamSoup()>400 && numFulfillmentCenters==0){
-            boolean built=false;
-            for(Direction possDir: HQ.directions){
-                if(!built && rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, possDir)){
-                    rc.buildRobot(RobotType.FULFILLMENT_CENTER, possDir);
-                    built=true;
+            else if(mode != RETURNING && rc.getTeamSoup()>400 && numFulfillmentCenters==0){
+                boolean built=false;
+                for(Direction possDir: HQ.directions){
+                    if(!built && rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, possDir)){
+                        rc.buildRobot(RobotType.FULFILLMENT_CENTER, possDir);
+                        built=true;
+                    }
                 }
             }
         }
