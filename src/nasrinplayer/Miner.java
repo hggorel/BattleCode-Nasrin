@@ -1,14 +1,17 @@
 package nasrinplayer;
 import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 
 public class Miner extends Unit {
 
-    MapLocation[] soups;
+    ArrayList<MapLocation> soups = new ArrayList<MapLocation>();
     MapLocation lastUsedRefinery;
     MapLocation targetLocation;
+    MapLocation lastMinedSoup;
+    int numRandomMoves=0;
 
     //set up different modes for the miner -- mining, building, returning, fleeing
     final int MINING = 1;
@@ -27,7 +30,7 @@ public class Miner extends Unit {
         super.takeTurn();
 
         System.out.println("Soup Total:" + rc.getTeamSoup());
-
+        System.out.println("My soup carrying: " + rc.getSoupCarrying());
 
         MapLocation myLocation = rc.getLocation();
         MapLocation hqLoc = comms.getHqLoc();
@@ -100,16 +103,26 @@ public class Miner extends Unit {
                 for(MapLocation loc: nextToSoup){
                     Direction possDir = currentLocation.directionTo(loc);
                     if(tryMine(possDir)){
+                        //if(soups.size()>0 && soups.contains(loc)){
+                        //    soups.remove(loc);
+                        //}
                         System.out.println("Mined soup at Location:" + rc.getLocation());
                         System.out.println("Current soup held: " + rc.getSoupCarrying());
                     }
                 }
             }
             else if (nearbySoup.length > 0){
+                //if(soups.size()==0){
+                //    soups.add(nearbySoup[0]);
+                //}
                 //If no things next to us, look at the ones within the possible distances and move to the closest
                 int minDistance = 1000000;
                 MapLocation targetSoup = rc.getLocation();
                 for(int i=0; i<nearbySoup.length; i++){
+                    //if(soups.size()>0 && !soups.contains(nearbySoup[i])){
+                        //soups.add(nearbySoup[i]);
+                        //System.out.println("Added soup at location " + nearbySoup[i] + " to soups.")
+                    //}
                     int distance = rc.getLocation().distanceSquaredTo(nearbySoup[i]);
                     if (distance<minDistance) {
                         minDistance=distance;
@@ -120,19 +133,29 @@ public class Miner extends Unit {
 
                 }
                 if(tryMine(rc.getLocation().directionTo(targetSoup))){
+                    //soups.remove(targetSoup);
                     System.out.println("Mined soup at " + rc.getLocation());
                     System.out.println("Current soup held: " + rc.getSoupCarrying());
                 }
             }
-            else if(rc.getRoundNum()<100){
-                Direction moveIn = randomDirection();
-                if(rc.canMove(moveIn) && rc.isReady()){
-                    rc.move(moveIn);
-                    System.out.println("Moving randomly!");
+            //else if(soups.size()>0){
+            //    while(!pathing.tanBugPath(soups.get(0))){
+
+            //    }
+            //}
+            else {
+                numRandomMoves++;
+                if(numRandomMoves%5==0 && rc.getRoundNum()>100){
+                    mode=BUILDING;
+                    System.out.println("Building MODE");
                 }
-            }
-            else{
-                mode = BUILDING;
+                else{
+                    Direction moveIn = randomDirection();
+                    if(rc.canMove(moveIn) && rc.isReady()){
+                        rc.move(moveIn);
+                        System.out.println("Moving randomly!");
+                    }
+                }
             }
         }
 
@@ -231,27 +254,29 @@ public class Miner extends Unit {
 
         RobotType toBuild = null;
         if(mode == BUILDING){
-            //if(numEnemyDrones>0 && numNetGuns==0 && rc.getTeamSoup()>RobotType.NET_GUN.cost){
-            //    toBuild = RobotType.NET_GUN;
-            //}
-            if(lastUsedRefinery == hqLoc && myLocation.distanceSquaredTo(hqLoc) > 36 && numRefinery==0 && rc.getTeamSoup()>RobotType.REFINERY.cost){
+            //if(myLocation.distanceSquaredTo(hqLoc) > 36 && numRefinery==0 && rc.getTeamSoup()>RobotType.REFINERY.cost){
+            if(rc.getRoundNum()<200 && rc.getTeamSoup()>RobotType.REFINERY.cost){
                 toBuild = RobotType.REFINERY;
             }
-            if(numDesignSchools==0 && rc.getTeamSoup()>RobotType.DESIGN_SCHOOL.cost){
-                toBuild = RobotType.DESIGN_SCHOOL;
+            else{
+                int choice = (int)(Math.random()*2);
+                if(choice == 1 && rc.getTeamSoup()>RobotType.DESIGN_SCHOOL.cost) {
+                    toBuild = RobotType.DESIGN_SCHOOL;
+                }else{
+                    if(rc.getTeamSoup()>RobotType.FULFILLMENT_CENTER.cost){
+                        toBuild = RobotType.FULFILLMENT_CENTER;
+                    }
+                }
             }
-            if(numVaporators == 0 && rc.sensePollution(myLocation)>5){
-                toBuild = RobotType.VAPORATOR;
+
+            for(int i=0; i<8; i++){
+                if(toBuild!=null && tryBuild(toBuild, HQ.directions[i])){
+                    System.out.println("Building a " + toBuild.name());
+                    i=8;        //this stops the loop, we don't want it to build them in all adjacent squares
+                }
             }
         }
 
-        //ways to build different buildings... where to use this?
-        for(int i=0; i<8; i++){
-            if(tryBuild(toBuild, HQ.directions[i])){
-                System.out.println("Building a " + toBuild.name());
-                i=8;        //this stops the loop, we don't want it to build them in all adjacent squares
-            }
-        }
 
     }
 

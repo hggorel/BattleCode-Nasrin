@@ -43,8 +43,7 @@ public class HQ extends Building {
 
         //make miners :)
 
-        if (builtBeginningMiners < 5) {
-
+        if (builtBeginningMiners < 5 && rc.getRoundNum()<250) {
             for (Direction dir : HQ.directions) {
                 if (tryBuild(RobotType.MINER, dir)) {
                     builtBeginningMiners++;
@@ -54,7 +53,5 @@ public class HQ extends Building {
 
         }
 
-
-        //shoot down enemy :)
     }
 }
