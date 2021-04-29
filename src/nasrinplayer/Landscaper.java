@@ -76,7 +76,6 @@ class Landscaper extends Unit {
         }
     }
 
-
     public void depositDirt(Direction dir) throws GameActionException {
         /*
          * We are keeping track of the dirt amount that the landscaper holds, ensuring that
