@@ -3,12 +3,6 @@ package nasrinplayer;
 import battlecode.common.*;
 
 
-//The HQ should be "intelligent" in the sense that it will halt production and attack if the enemies are
-//attacking it
-public class HQ extends Building package nasrinplayer;
-
-        import battlecode.common.*;
-
 
 //The HQ should be "intelligent" in the sense that it will halt production and attack if the enemies are
 //attacking it
