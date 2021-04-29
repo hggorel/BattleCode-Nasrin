@@ -55,12 +55,6 @@ public class Miner extends Unit {
         MapLocation myLocation = rc.getLocation();
         MapLocation hqLoc = comms.getHqLoc();
 
-        //currently here for testing purposes to show that you never get above 150 which is a PROBLEM
-        if(rc.getTeamSoup()>150){
-            rc.buildRobot(RobotType.DESIGN_SCHOOL, randomDirection());
-        }
-
-
         //first check to see if in range of any enemy netguns or drones
         RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
@@ -107,9 +101,7 @@ public class Miner extends Unit {
         }
 
         /*
-        Now onto the second priority -- mining :) this is a BIG one, but one that is slightly broken?
-        For some reason the overall team soup decreases even if there is nothing being built,
-        and I cannot figure out why but that is preventing buildings from being created and I am stumped.
+        Now onto the second priority -- mining :) this is a BIG one
          */
         //If the robot is at capacity or just cannot take in any more soup
         if(rc.getSoupCarrying()>=RobotType.MINER.soupLimit - GameConstants.SOUP_MINING_RATE){
@@ -186,7 +178,7 @@ public class Miner extends Unit {
             //}
             else {  //if there is no sensed soup choose a random one, eventually will end up near soup
                 numRandomMoves++;
-                if(numRandomMoves%5==0 && rc.getRoundNum()>100){    //every once in a while switch to building mode
+                if(numRandomMoves%2==0 && rc.getRoundNum()>100){    //every once in a while switch to building mode
                     mode=BUILDING;
                     System.out.println("Building MODE");
                 }
@@ -280,7 +272,7 @@ public class Miner extends Unit {
                 targetLocation = null;
                 mode = MINING;
             }
-            else if(distance <=64){ //if within reasonable distance
+            else if(distance <=36){ //if within reasonable distance
                 //move towards that refinery
                 while(!pathing.tanBugPath(targetLocation)){
 
@@ -318,8 +310,8 @@ public class Miner extends Unit {
                 toBuild = RobotType.REFINERY;
             }
             else{   //then 50/50 make a design_school or fulfillment center
-                int choice = (int)(Math.random()*2);
-                if(choice == 1 && rc.getTeamSoup()>RobotType.DESIGN_SCHOOL.cost) {
+                //int choice = (int)(Math.random()*2);
+                if(numDesignSchools==0 && rc.getTeamSoup()>RobotType.DESIGN_SCHOOL.cost) {
                     toBuild = RobotType.DESIGN_SCHOOL;
                 }else{
                     if(rc.getTeamSoup()>RobotType.FULFILLMENT_CENTER.cost){
@@ -328,7 +320,7 @@ public class Miner extends Unit {
                 }
             }
 
-            //once toBuild has been assigned, try to build it in a random direction
+            //once toBuild has been assigned, loop through all possible directions trying to build it
             for(int i=0; i<8; i++){
                 if(toBuild!=null && tryBuild(toBuild, HQ.directions[i])){
                     System.out.println("Building a " + toBuild.name());
