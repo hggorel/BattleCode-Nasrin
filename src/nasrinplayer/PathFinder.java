@@ -12,6 +12,7 @@ public class PathFinder {
 
 
     static boolean bugMode = false;
+    static int unstuck = 0;
     static boolean predeterminedTanPath = false;
 
 
@@ -56,6 +57,10 @@ public class PathFinder {
         rc = r;
 
 
+    }
+
+    boolean goToWorstCase(MapLocation destination) throws GameActionException {
+        return goToWorstCase(rc.getLocation().directionTo(destination));
     }
 
 
@@ -104,6 +109,7 @@ public class PathFinder {
 
         }
 
+
         if (rc.getLocation().distanceSquaredTo(target) < shortestDistance.get(0)) {
             shortestDistance.set(0, rc.getLocation().distanceSquaredTo(target));
             System.out.println("Out of every mode");
@@ -149,8 +155,8 @@ public class PathFinder {
                 predeterminedTanPath = false;
                 stuckInt = 0;
                 lastWall = null;
-            }
-            else{bugMode=true;
+            } else {
+                bugMode = true;
             }
 
 
@@ -189,6 +195,8 @@ public class PathFinder {
             if (rc.senseFlooding(rc.getLocation().add(dirToTarget)) || rc.senseElevation(rc.getLocation().add(dirToTarget)) > rc.senseElevation(rc.getLocation()) + 3 || rc.senseElevation(rc.getLocation().add(dirToTarget)) < rc.senseElevation(rc.getLocation()) - 3) {
                 System.out.println("It happens to be the case that the Direction to targets isnt safe");
                 dangerousLocations.put(rc.getLocation().add(dirToTarget), "water");
+
+
             } else if (rc.senseRobotAtLocation(rc.getLocation().add(dirToTarget)) != null) {
                 System.out.println("There is a robot in our way Maybe the annoying cow? We will wait");
                 if (finalTanModeCheck(rc.getLocation(), rc.getLocation(), target)) {
@@ -575,20 +583,26 @@ public class PathFinder {
                         }//End of for loop
 
                         stuckInt++;
-                        System.out.println("PLEASE NOTICE ME IN THE LOGS"+ stuckInt);
+                        System.out.println("PLEASE NOTICE ME IN THE LOGS" + stuckInt);
 
 
-                        while (!lastWall.equals(rc.getLocation().add(Direction.WEST))) {
-                            //Move west until we hit the wall
-                            if ((!rc.senseFlooding(rc.getLocation().add(Direction.WEST)) && rc.senseElevation(rc.getLocation().add(Direction.WEST)) < rc.senseElevation(rc.getLocation()) + 3 && rc.senseElevation(rc.getLocation().add(Direction.WEST)) > rc.senseElevation(rc.getLocation()) - 3) && tryMove(Direction.WEST)) {
-                                System.out.println("BUGGIN West");
-                                lastWall = null;
-                                return false;
-                            } else {
-                                //if we can move it must be a wall
-                                lastWall = rc.getLocation().add(Direction.WEST);
-                                System.out.println("lastWall" + lastWall);
+                        while (true) {
+                            if(rc.getType()==RobotType.DELIVERY_DRONE){
+                                tryMoveDeliveryDrone(rc.getLocation().directionTo(target));
                             }
+
+                            goToWorstCase(target);
+                            unstuck++;
+                            if (unstuck >= 10) {
+                                bugMode = false;
+                                predeterminedTanPath = false;
+                                stuckInt = 0;
+                                unstuck = 0;
+                                return false;
+
+                            }
+
+
                         }
 
 
@@ -723,6 +737,13 @@ public class PathFinder {
         }
     }
 
+    boolean tryMoveDeliveryDrone(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
 
     /*
     This is meant to get the round in which the TileFloods, This is computationally expensive for high elevations so it only checks if it will flood within the next three rounds,
@@ -747,6 +768,25 @@ public class PathFinder {
             //else it will be flooded
         }
 
+    }
+
+
+    boolean tryMoveWorstCase(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canMove(dir) && rc.senseElevation(rc.getLocation()) > rc.senseElevation(rc.getLocation()) + 3 && rc.senseElevation(rc.getLocation()) < rc.senseElevation(rc.getLocation()) - 3 && !rc.senseFlooding(rc.getLocation().add(dir))) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
+
+    // tries to move in the general direction of dir
+    boolean goToWorstCase(Direction dir) throws GameActionException {
+        Direction[] toTry = {dir, dir.rotateLeft(), dir.rotateRight(), dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight()};
+        for (Direction d : toTry) {
+            if (tryMove(d))
+                return true;
+        }
+        return false;
     }
 
 
