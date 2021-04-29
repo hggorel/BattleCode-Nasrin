@@ -138,7 +138,9 @@ public class DeliveryDrone extends Unit {
             pathing.tanBugPath(HQLocation);
 
             //have the drones faff about
-            rc.move(dir);
+            if(rc.isReady()){
+                rc.move(dir);
+            }
 
             //as long as they can move, drones should grab what they can
             if(rc.canMove(Direction.NORTH)){
