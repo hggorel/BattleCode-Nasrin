@@ -26,16 +26,15 @@ public class Miner extends Unit {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        //to be edited out later.. just to see if running at all
-        //Direction toMove = randomDirection();
-        //if(rc.canMove(toMove) && rc.isReady()){
-        //rc.move(toMove);
-        //}
+        System.out.println("Soup Total:" + rc.getTeamSoup());
+
+
+        MapLocation myLocation = rc.getLocation();
+        MapLocation hqLoc = comms.getHqLoc();
+
 
         //first check to see if in range of any enemy netguns or drones
         RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        MapLocation myLocation = rc.getLocation();
-        MapLocation hqLoc = comms.getHqLoc();
 
         /*TODO: make a better choice if the opposite distance isn't an option.
          *Maybe go through and store all the dangerous locations and then rule them out...
@@ -64,7 +63,7 @@ public class Miner extends Unit {
 
         //check to see if in range of enemy -- if so retreat
         //farthest range is 13... so
-        if(myLocation.distanceSquaredTo(closestEnemy.getLocation()) <=13){
+        if(closestEnemy !=null && myLocation.distanceSquaredTo(closestEnemy.getLocation()) <=13){
             mode = FLEEING;
             //this means we are in range -- so want to retreat
             Direction enemyDirection = myLocation.directionTo(closestEnemy.getLocation());
@@ -89,8 +88,9 @@ public class Miner extends Unit {
             }
         }
         else if (mode == MINING){
+            System.out.println("Looking for soup");
             //if not full and can looking for soup, first look immediately next to us
-            MapLocation[] nextToSoup = rc.senseNearbySoup(1);
+            MapLocation[] nextToSoup = rc.senseNearbySoup(2);
 
             MapLocation[] nearbySoup = rc.senseNearbySoup();
 
@@ -99,7 +99,10 @@ public class Miner extends Unit {
                 MapLocation currentLocation = rc.getLocation();
                 for(MapLocation loc: nextToSoup){
                     Direction possDir = currentLocation.directionTo(loc);
-                    tryMine(possDir);
+                    if(tryMine(possDir)){
+                        System.out.println("Mined soup at Location:" + rc.getLocation());
+                        System.out.println("Current soup held: " + rc.getSoupCarrying());
+                    }
                 }
             }
             else if (nearbySoup.length > 0){
@@ -116,7 +119,10 @@ public class Miner extends Unit {
                 while(!pathing.tanBugPath(targetSoup)){
 
                 }
-                tryMine(rc.getLocation().directionTo(targetSoup));
+                if(tryMine(rc.getLocation().directionTo(targetSoup))){
+                    System.out.println("Mined soup at " + rc.getLocation());
+                    System.out.println("Current soup held: " + rc.getSoupCarrying());
+                }
             }
             else if(rc.getRoundNum()<100){
                 Direction moveIn = randomDirection();
@@ -190,30 +196,44 @@ public class Miner extends Unit {
                 if(tryRefine(refineDirection)){
                     System.out.println("Refined soup!");
                 }
+                lastUsedRefinery =targetLocation;
+                targetLocation = null;
+                mode = MINING;
             }
-            else if(distance <=36){
+            else if(distance <=64){
                 //move towards that refinery
                 while(!pathing.tanBugPath(targetLocation)){
 
                 }
+                Direction refineDirection = myLocation.directionTo(targetLocation);
+                if(tryRefine(refineDirection)){
+                    System.out.println("Refined soup!");
+                }
+                lastUsedRefinery = targetLocation;
+                targetLocation = null;
+                mode = MINING;
             }
             else{
                 //build a refinery if possible
-                if(rc.isReady() && rc.canBuildRobot(RobotType.REFINERY, Direction.NORTH) && rc.getTeamSoup()>RobotType.REFINERY.cost){
+                if(rc.isReady() && rc.canBuildRobot(RobotType.REFINERY, Direction.NORTH) && rc.getTeamSoup()>RobotType.REFINERY.cost && numRefinery==0){
                     rc.buildRobot(RobotType.REFINERY, Direction.NORTH);
                     System.out.println("Building refinery!");
                 }
                 else{
-                    mode = BUILDING;
+                    targetLocation = hqLoc;
+                    while(!pathing.tanBugPath(targetLocation)){
+
+                    }
+
                 }
             }
         }
 
         RobotType toBuild = null;
         if(mode == BUILDING){
-            if(numEnemyDrones>0 && numNetGuns==0 && rc.getTeamSoup()>RobotType.NET_GUN.cost){
-                toBuild = RobotType.NET_GUN;
-            }
+            //if(numEnemyDrones>0 && numNetGuns==0 && rc.getTeamSoup()>RobotType.NET_GUN.cost){
+            //    toBuild = RobotType.NET_GUN;
+            //}
             if(lastUsedRefinery == hqLoc && myLocation.distanceSquaredTo(hqLoc) > 36 && numRefinery==0 && rc.getTeamSoup()>RobotType.REFINERY.cost){
                 toBuild = RobotType.REFINERY;
             }
