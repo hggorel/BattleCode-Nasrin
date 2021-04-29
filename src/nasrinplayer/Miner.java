@@ -228,11 +228,14 @@ public class Miner extends Unit {
                 //Mine all soup that's immediately next to the robot until full
                 MapLocation currentLocation = rc.getLocation();
                 for(MapLocation loc: nextToSoup){       //loop through all adjacent soup locations
+                    if(soups.size()>0 && !soups.contains(loc)){
+                        soups.add(loc);
+                    }
                     Direction possDir = currentLocation.directionTo(loc);
                     if(tryMine(possDir)){           //try to mine it
-                        //if(soups.size()>0 && soups.contains(loc)){
-                        //    soups.remove(loc);
-                        //}
+                        if(soups.size()>0 && soups.contains(loc)){
+                            soups.remove(loc);
+                        }
                         System.out.println("Mined soup at Location:" + rc.getLocation());
                         System.out.println("Current soup held: " + rc.getSoupCarrying());
                     }
@@ -246,10 +249,13 @@ public class Miner extends Unit {
                 int minDistance = 1000000;      //set a large minDistance so it will definitely be reset
                 MapLocation targetSoup = rc.getLocation();
                 for(int i=0; i<nearbySoup.length; i++){
-                    //if(soups.size()>0 && !soups.contains(nearbySoup[i])){
-                    //soups.add(nearbySoup[i]);
-                    //System.out.println("Added soup at location " + nearbySoup[i] + " to soups.")
-                    //}
+                    if(soups.size()==0){
+                        soups.add(nearbySoup[i]);
+                    }
+                    else if(soups.size()>0 && !soups.contains(nearbySoup[i])){
+                        soups.add(nearbySoup[i]);
+                        System.out.println("Added soup at location " + nearbySoup[i] + " to soups.");
+                    }
                     int distance = rc.getLocation().distanceSquaredTo(nearbySoup[i]);
                     //if the new distance is closer, reset all relevant variables to save this as the closest
                     if (distance<minDistance) {
@@ -263,22 +269,16 @@ public class Miner extends Unit {
                 }
                 //try to mine it (shouldn't ever get here though)
                 if(tryMine(rc.getLocation().directionTo(targetSoup))){
-                    //soups.remove(targetSoup);
+                    soups.remove(targetSoup);
                     System.out.println("Mined soup at " + rc.getLocation());
                     System.out.println("Current soup held: " + rc.getSoupCarrying());
                 }
             }
-            /*
-             --- for some reason this caused HUGE problems in the execution - but I thought the best idea
-             would be to keep an arraylist of all known soup locations and then return to one that we know of
-             but this kept erroring and NEVER worked
-             */
+            else if(soups.size()>0){
+                while(!pathing.tanBugPath(soups.get(0))){
 
-            //else if(soups.size()>0){
-            //    while(!pathing.tanBugPath(soups.get(0))){
-
-            //    }
-            //}
+                }
+            }
             else {  //if there is no sensed soup choose a random one, eventually will end up near soup
                 numRandomMoves++;
                 if(numRandomMoves%2==0 && rc.getRoundNum()>100){    //every once in a while switch to building mode
