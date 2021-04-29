@@ -5,7 +5,15 @@ import battlecode.common.*;
 
 //The HQ should be "intelligent" in the sense that it will halt production and attack if the enemies are
 //attacking it
+public class HQ extends Building package nasrinplayer;
+
+        import battlecode.common.*;
+
+
+//The HQ should be "intelligent" in the sense that it will halt production and attack if the enemies are
+//attacking it
 public class HQ extends Building {
+
 
     //Directions we can use
     static Direction[] directions = {
@@ -29,10 +37,11 @@ public class HQ extends Building {
 
         super(robotController);
 
-        if ((comms.HQloc)) {
+        if (comms.getHqLoc()==null) {
             System.out.println("UH OH");
             //The HQloc is set to true if a miner has found it in the blockchain, allowing us not to submit it to the block chain afterwards
             comms.sendHQLoc(rc.getLocation());
+
         }
 
 
@@ -59,3 +68,4 @@ public class HQ extends Building {
         //shoot down enemy :)
     }
 }
+
