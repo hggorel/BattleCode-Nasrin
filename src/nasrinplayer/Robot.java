@@ -1,7 +1,12 @@
 package nasrinplayer;
 import battlecode.common.*;
 
-
+/**
+ * Robot Class
+ * Description: The Robot class is the parent class for all of the bots we use,
+ * it contains the general variables and sets teh comms, pathfinder and robotcontroller
+ * that all of the bots will use in their individual classes.
+ */
 public class Robot {
     RobotController rc;
     Communications comms;
