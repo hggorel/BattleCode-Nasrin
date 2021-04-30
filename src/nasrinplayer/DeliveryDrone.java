@@ -7,6 +7,11 @@ import battlecode.common.*;
  * robots and cows to take them away from our team and drop them either in a dangerous
  * location or just far away
  */
+
+import java.util.Random;
+
+import java.util.Hashtable;
+
 public class DeliveryDrone extends Unit {
     public DeliveryDrone(RobotController robotController) {
         super(robotController);
@@ -15,9 +20,12 @@ public class DeliveryDrone extends Unit {
     static MapLocation HQLocation; //the location of the home HQ
     static MapLocation EnemyHQLoc; //the location of the enemy HQ
     MapLocation droneLocation = rc.getLocation();
+    static Hashtable<MapLocation, String> canDrop = new Hashtable<>();
 
-    Team A; //player team
-    Team B; //enemy team
+    Team A = rc.getTeam(); //player team
+    Team B = rc.getTeam().opponent();
+    int seedchange = 1;
+
 
     //a method to sense all nearby bots
     boolean nearbyRobot(RobotType target) throws GameActionException {
@@ -48,6 +56,7 @@ public class DeliveryDrone extends Unit {
 
     /**
      * drone will try to pick up an enemy unit
+     *
      * @param dir
      * @return
      * @throws GameActionException
@@ -55,11 +64,12 @@ public class DeliveryDrone extends Unit {
     Team enemy = rc.getTeam().opponent();
     Team friend = rc.getTeam();
 
+
     boolean tryToPickUpEnemy(Direction dir) throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots(24, enemy);
         for (RobotInfo r : robots) {
             int robotID = r.getID();
-            if(rc.canPickUpUnit(robotID)){
+            if (rc.canPickUpUnit(robotID)) {
                 rc.pickUpUnit(robotID);
                 return true;
             }
@@ -69,17 +79,20 @@ public class DeliveryDrone extends Unit {
 
     /**
      * drone will try to pick up a friendly unit, most likely will not be used
+     *
      * @param dir
      * @return
      * @throws GameActionException
      */
-    boolean tryToPickUpFriend(Direction dir) throws GameActionException{
+    boolean tryToPickUpFriend(Direction dir) throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots(24, friend);
-        for(RobotInfo r : robots){
+        for (RobotInfo r : robots) {
             int robotID = r.getID();
-            if(rc.canPickUpUnit(robotID)){
+            if (rc.canPickUpUnit(robotID)) {
                 rc.pickUpUnit(robotID);
                 return true;
+            } else {
+                pathing.tryMove(dir);
             }
         }
         return false;
@@ -105,115 +118,76 @@ public class DeliveryDrone extends Unit {
          */
 
 
-
         //[1] All drones should try to find home and enemy base locations
         HQLocation = comms.getHqLoc();
 
-        if (HQLocation == null) {
-            //search area for HQ
-            RobotInfo[] agents = rc.senseNearbyRobots(24);
-            for (RobotInfo agent : agents) {
-                //RobotInfo contains: robot ID num, location, team, and type.
-                if (agent.type == RobotType.HQ && agent.getTeam() == A) {
-                    //home team HQ found
-                    HQLocation = agent.location;
-                    //enemy HQ found (?)
-                } else if (agent.type == RobotType.HQ == true && agent.getTeam() == enemy) {
-                    EnemyHQLoc = agent.location;
-                } else {
-                    //if the enemy's HQ location is already found
-                    System.out.println("Drone Reporting: Enemy HQ Location at: " + EnemyHQLoc);
+        for (Direction dir : HQ.directions) {
+            if (rc.senseFlooding(rc.getLocation().add(dir)) || rc.senseElevation(rc.getLocation().add(dir)) > rc.senseElevation(rc.getLocation()) + 3 || rc.senseElevation(rc.getLocation().add(dir)) < rc.senseElevation(rc.getLocation()) - 3) {
+                canDrop.put(rc.getLocation().add(dir), "stuck");
+            }
+        }
+
+        /*
+            The drones will sense their surroundings
+         */
+        RobotInfo[] robots = rc.senseNearbyRobots(24, enemy);
+        if (robots.length == 0) {
+            //No robots near me
+
+            Random oracle = new Random(seedchange);
+            seedchange++;
+
+            //drones will try to move in any direction they can
+            if (rc.canMove(HQ.directions[oracle.nextInt(HQ.directions.length - 1)])) {
+                pathing.tryMove(HQ.directions[oracle.nextInt(HQ.directions.length - 1)]);
+            }
+
+
+        } else {
+
+            //while a target is not yet found, keep searching for an opponent unit to grab
+            while (!pathing.tanBugPath(robots[robots.length - 1].getLocation())) {
+
+                if (rc.senseRobotAtLocation(robots[robots.length - 1].getLocation()) == null) {
+                    robots = rc.senseNearbyRobots(24, enemy);
+                }
+
+
+
+
+            }
+
+
+            //drone should should have a target to pick up
+            while (!tryToPickUpEnemy(rc.getLocation().directionTo(robots[robots.length - 1].getLocation()))) {
+            }
+
+            System.out.println("Should be picking up someone");
+            System.out.println("KEYSETTING" + canDrop.keySet().toString());
+            for (MapLocation keys : canDrop.keySet()) {
+                if (canDrop.containsKey(keys) && canDrop.get(keys) != "put") {
+                    System.out.println("FREAKING TARGET" + keys);
+                    while (rc.getLocation() != keys) {
+                        System.out.println("FREAKING TARGET" + keys);
+                        pathing.directApproach(rc.getLocation(), keys);
+
+                    }
+                    if (rc.canMove(Direction.NORTH)) {
+                        if (pathing.tryMove(Direction.NORTH)) {
+                            rc.dropUnit(Direction.SOUTH);
+                            canDrop.put(keys, "put");
+                        }
+                    } else {
+                        Clock.yield();
+                    }
+
+
                 }
             }
-        } else {
-            //if the HQ is already found, print the location
-            System.out.println("Drone Reporting: Home HQ Location at: " + HQLocation);
+
 
         }
 
 
-        /**
-         * [2] Assemble drones near home base, begin defend and destroy tactics
-         *
-         */
-        //moving in all directions
-        for (Direction dir : Direction.allDirections()) {
-
-            //find HQ
-            HQLocation = comms.getHqLoc();
-            pathing.tanBugPath(HQLocation);
-
-            //have the drones faff about
-            if(rc.isReady()){
-                rc.move(dir);
-            }
-
-            //as long as they can move, drones should grab what they can
-            if(rc.canMove(Direction.NORTH)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.NORTHEAST)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.NORTHWEST)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.SOUTH)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.SOUTHEAST)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.SOUTHWEST)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.EAST)){
-                tryToPickUpEnemy(dir);
-            }
-            else if(rc.canMove(Direction.WEST)){
-                tryToPickUpEnemy(dir);
-            }
-
-            //if/when they come across another bot, check if it can move over it
-            //if the drone is obstructed, try to redirect elsewhere
-
-            if(rc.canMove(Direction.NORTH) == false){
-                rc.move(Direction.NORTHEAST);
-                rc.move(dir);
-            }
-            else if(rc.canMove(Direction.SOUTH) == false){
-                rc.move(Direction.SOUTHEAST);
-                rc.move(dir);
-            }
-            else if(rc.canMove(Direction.EAST) == false){
-                rc.move(Direction.NORTHEAST);
-                rc.move(dir);
-            }
-
-            /**
-             * Drones should look for floods to drop enemies in
-             */
-            //drone will check for flooded tiles for yeeting purposes
-            rc.senseNearbyRobots(24);
-            //look for flooded areas nearby
-            boolean floodedLoc = rc.senseFlooding(droneLocation.add(dir));
-            if(floodedLoc == true){
-                //check if the drone is actually holding anything
-                rc.isCurrentlyHoldingUnit();
-                if(rc.isCurrentlyHoldingUnit() == true && rc.canDropUnit(Direction.CENTER)){
-                    //assuming center is down and no particular direction, drop the unit in the flood
-                    rc.dropUnit(Direction.CENTER);
-                }
-            }
-            //cow coverage. if drone senses a cow agent, try to pick it up and rain cows on enemy HQ?
-            rc.senseNearbyRobots(24);
-            if(rc.getType() == RobotType.COW){
-                tryToPickUpEnemy(dir);
-                Direction toEnemyHQ = rc.getLocation().directionTo(EnemyHQLoc);
-                rc.move(toEnemyHQ);
-                rc.dropUnit(Direction.CENTER);
-            }
-        } //end for
     }
 }
-
