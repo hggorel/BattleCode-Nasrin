@@ -2,9 +2,15 @@ package nasrinplayer;
 
 import battlecode.common.*;
 
+/**
+ * Landscaper Class:
+ * Description: Landscaper is built by the design school and tries to protect the HQ
+ * by building up a wall around it to protect it from the flood and possible enemy
+ * attacking robots
+ */
 class Landscaper extends Unit {
 
-
+    //global variables
     static MapLocation hqLoc = null;
     static int dirtAmount = 0;
 
@@ -25,6 +31,7 @@ class Landscaper extends Unit {
             hqLoc = comms.getHqLoc();
         }
 
+        //store all of the directions around the HQ
         MapLocation north = hqLoc.add(Direction.NORTH);
         MapLocation east = hqLoc.add(Direction.EAST);
         MapLocation south = hqLoc.add(Direction.SOUTH);
@@ -51,7 +58,10 @@ class Landscaper extends Unit {
         }
 
 
-
+        /*
+        Now placing blocks in the cardinal directions and checking them in order
+        This should protect the HQ!
+         */
         if (!rc.getLocation().add(Direction.NORTH).equals(hqLoc)&&rc.senseElevation(rc.getLocation().add(Direction.NORTH)) < 30&&rc.getCooldownTurns()==0 && rc.getType()!=RobotType.HQ) {
 
 
