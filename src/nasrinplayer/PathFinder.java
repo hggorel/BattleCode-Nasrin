@@ -7,7 +7,12 @@ import battlecode.common.*;
 
 import java.util.Hashtable;
 
-
+/**
+ * PathFinder Class:
+ * Description: The PathFinder class is our navigation system with its main function being
+ * tanBugPath which takes in a MapLocation and then moves us towards it one step in the most optimal fashion
+ * accounting for flooded paths, dangerous areas, and enemy robots
+ */
 public class PathFinder {
 
 

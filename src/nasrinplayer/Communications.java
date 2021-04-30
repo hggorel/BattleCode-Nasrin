@@ -2,7 +2,11 @@ package nasrinplayer;
 
 import battlecode.common.*;
 
-
+/**
+ * Communications class
+ * Description: The communications class controls the blockchain messages
+ * We only use it to pass in the HQ location so all the bots can retrace back to it.
+ */
 public class Communications {
 
 

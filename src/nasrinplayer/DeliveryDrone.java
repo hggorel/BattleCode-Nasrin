@@ -1,6 +1,12 @@
 package nasrinplayer;
 import battlecode.common.*;
 
+/**
+ * Delivery Drone Class
+ * Description: The Delivery Drone should travel around and pick up enemy
+ * robots and cows to take them away from our team and drop them either in a dangerous
+ * location or just far away
+ */
 public class DeliveryDrone extends Unit {
     public DeliveryDrone(RobotController robotController) {
         super(robotController);

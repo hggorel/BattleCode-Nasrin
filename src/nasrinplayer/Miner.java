@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * Miner Class
- * Responsible for mining soup, depositing soup at refineries, finding more soup,
+ * Description: Responsible for mining soup, depositing soup at refineries, finding more soup,
  * creating repositories, design schools, fulfillment centers, etc.
  */
 public class Miner extends Unit {
@@ -157,9 +157,11 @@ public class Miner extends Unit {
             }
         }
 
-
-        //if there's no design schools or fulfillment centers close -- build alternate which one we're building
-        if(rc.getRoundNum()<250){
+        int distanceToHQ = rc.getLocation().distanceSquaredTo(hqLoc);   //want to save this to make sure
+        // we don't build buildings right next to HQ because that's where we want the landscapers to go
+        // if there's no design schools or fulfillment centers close -- build alternate which one we're building
+        // also check distance to HQ
+        if(rc.getRoundNum()<250 && distanceToHQ>2){
             if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0 && numFulfillmentCenters==0){
                 boolean built=false;
                 tossUp++;
@@ -184,6 +186,7 @@ public class Miner extends Unit {
 
             }
             else if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0){
+                //if there isn't a design school near us
                 boolean built=false;
                 for(Direction possDir: HQ.directions){
                     if(!built && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, possDir)){
@@ -193,6 +196,7 @@ public class Miner extends Unit {
                 }
             }
             else if(mode != RETURNING && rc.getTeamSoup()>400 && numFulfillmentCenters==0){
+                //if there isn't a fulfillment center near here
                 boolean built=false;
                 for(Direction possDir: HQ.directions){
                     if(!built && rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, possDir)){

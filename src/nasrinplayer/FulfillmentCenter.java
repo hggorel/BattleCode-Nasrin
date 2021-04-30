@@ -1,8 +1,13 @@
 package nasrinplayer;
 import battlecode.common.*;
 
+/**
+ * Fulfillment Center Class
+ * Description: The fulfillment center creates drones! It checks to see if it has enough
+ * soup to make the bot, and then builds them if the rounds have reached over 450 --
+ * this is to make sure the landscapers are favored since their purpose is more essential
+ */
 public class FulfillmentCenter extends Building{
-
 
     //the fulfillment center is responsible for building drones. is built itself by miner.
 

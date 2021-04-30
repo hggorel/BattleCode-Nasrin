@@ -1,6 +1,13 @@
 package nasrinplayer;
 import battlecode.common.*;
 
+/**
+ * NetGun Class
+ * Description: The NetGun shoots down opponents -- unfortunately we have not fully implemented
+ * this because we ended up always running out of soup and since we are not a very offensive team
+ * these were deemed slightly less important -- however, we did code them to show how they would be
+ * implemented if we knew how to create them properly!
+ */
 public class NetGun extends Robot{
 
     public NetGun(RobotController robotController) {
