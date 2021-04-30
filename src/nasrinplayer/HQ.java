@@ -2,10 +2,11 @@ package nasrinplayer;
 
 import battlecode.common.*;
 
-
-
-//The HQ should be "intelligent" in the sense that it will halt production and attack if the enemies are
-//attacking it
+/**
+ * HQ Class
+ * Description: The HQ originally builds a few miners and then builds a few more as time goes on
+ * We've typically been running out of soup so decreased the number of miners built
+ */
 public class HQ extends Building {
 
 
@@ -61,7 +62,7 @@ public class HQ extends Building {
         }
 
         //now maybe in the first 200 rounds, every 10 check to see if it can make a miner?
-        if(builtBeginningMiners==5 && totalBuiltMiners<=8 && rc.getRoundNum()<200){
+        if(builtBeginningMiners==5 && totalBuiltMiners<=7 && rc.getRoundNum()<200){
             if(rc.getRoundNum()%25==0){
                 for(Direction dir: HQ.directions){
                     if(tryBuild(RobotType.MINER, dir)){
@@ -71,8 +72,6 @@ public class HQ extends Building {
             }
         }
 
-
-        //shoot down enemy :)
     }
 }
 

@@ -1,6 +1,12 @@
 package nasrinplayer;
 import battlecode.common.*;
 
+/**
+ * Landscaper Class:
+ * Description: Landscaper is built by the design school and tries to protect the HQ
+ * by building up a wall around it to protect it from the flood and possible enemy
+ * attacking robots
+ */
 class Landscaper extends Unit {
 
     private int dirtAmount;                                     // keeps track of the dirt amount

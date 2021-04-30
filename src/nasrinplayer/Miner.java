@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * Miner Class
- * Responsible for mining soup, depositing soup at refineries, finding more soup,
+ * Description: Responsible for mining soup, depositing soup at refineries, finding more soup,
  * creating repositories, design schools, fulfillment centers, etc.
  */
 public class Miner extends Unit {
@@ -186,6 +186,7 @@ public class Miner extends Unit {
 
             }
             else if(mode != RETURNING && rc.getTeamSoup()>400 && numDesignSchools==0){
+                //if there isn't a design school near us
                 boolean built=false;
                 for(Direction possDir: HQ.directions){
                     if(!built && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, possDir)){
@@ -195,6 +196,7 @@ public class Miner extends Unit {
                 }
             }
             else if(mode != RETURNING && rc.getTeamSoup()>400 && numFulfillmentCenters==0){
+                //if there isn't a fulfillment center near here
                 boolean built=false;
                 for(Direction possDir: HQ.directions){
                     if(!built && rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, possDir)){

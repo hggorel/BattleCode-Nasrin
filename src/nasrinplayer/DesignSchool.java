@@ -1,6 +1,11 @@
 package nasrinplayer;
 import battlecode.common.*;
 
+/**
+ * DesignSchool Class
+ * Description: Design school creates landscapers, we have it planned that the landscapers will
+ * be created within a certain amount of rounds if it has enough soup to build them!
+ */
 public class DesignSchool extends Building{
 
     static int numLandscapers;

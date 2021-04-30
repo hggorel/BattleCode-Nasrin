@@ -2,6 +2,12 @@ package nasrinplayer;
 
 import battlecode.common.*;
 
+/**
+ * RobotPlayer Class
+ * Description: The RobotPlayer Class has some helpful global variables and also runs the bots!
+ * It looks at the type of the Bot that has been instantiated, and then creates the proper object
+ * Some of this class was patterned after the RobotPlayer class in examplefuncsplayer
+ */
 public strictfp class RobotPlayer {
     static RobotController rc;
 
@@ -15,8 +21,6 @@ public strictfp class RobotPlayer {
             Direction.WEST,
             Direction.NORTHWEST
     };
-    static RobotType[] spawnedByMiner = {RobotType.REFINERY, RobotType.VAPORATOR, RobotType.DESIGN_SCHOOL,
-            RobotType.FULFILLMENT_CENTER, RobotType.NET_GUN};
 
     static int turnCount;
 
@@ -36,7 +40,6 @@ public strictfp class RobotPlayer {
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
                 // Here, we've separated the controls into a different method for each RobotType.
-                // You can add the missing ones or rewrite this into your own control structure.
                 System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
                 switch (rc.getType()) {
                     case HQ:
